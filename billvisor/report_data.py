@@ -12,12 +12,54 @@ from decimal import Decimal
 from . import REPORT_DATA_CONTRACT_VERSION, lint, score
 from .calc import LABELS, LIMITATION_DEFAULT_TEXT, unit_sort_key
 from .energy import ESTIMATE_WORDING
-from .errors import CUSTOMER_INFO_CODES, GateError
-from .values import gbp_whole, nonempty_str, round_half_up
+from .errors import CUSTOMER_INFO_CODES, GateError, StopError
+from .values import dec, gbp_whole, nonempty_str, round_half_up
 
 ACTION_TYPES = ["Stay put", "Improve the current setup", "Look at changing now", "Review later", "Confirm information"]
 EFFORT = ["Low", "Moderate", "High"]
 SOURCE_LINE = "Supporting source details are available on request."
+
+
+def _money_2dp(value) -> Decimal | None:
+    try:
+        return dec(value, "current_service").quantize(Decimal("0.01"))
+    except StopError:
+        return None
+
+
+def current_service(uid: str, facts: dict | None) -> dict:
+    """The household's own submitted details for the "Your current service" block
+    (PHASE_1_REPORT_RENDERER_CONTRACT section 4). Values are raw facts: date strings and codes such as
+    out_of_contract are passed through, and their display wording belongs to the renderer contract.
+    Missing facts are null (for example on a Confirm-information page)."""
+    f = facts if isinstance(facts, dict) else {}
+    if uid == "broadband":
+        return {"provider": f.get("provider"), "download_speed_mbps": f.get("download_speed_mbps"),
+                "monthly_cost_gbp": _money_2dp(f.get("monthly_price_gbp")), "contract_end": f.get("contract_end")}
+    if uid == "mobile":
+        handset = f.get("handset_included")
+        return {"provider": f.get("provider"),
+                "data_allowance_gb": f.get("data_allowance_gb"),
+                "data_allowance_unlimited": f.get("data_allowance_unlimited") is True,
+                "plan_type": {True: "handset_included", False: "sim_only"}.get(handset) if isinstance(handset, bool) else None,
+                "monthly_cost_gbp": _money_2dp(f.get("monthly_price_gbp")), "contract_end": f.get("contract_end")}
+    # Energy. monthly_payment_gbp stays null until a structured monthly figure is agreed:
+    # facts.approximate_payment is the customer's own wording (REVIEW_NEXT_STEPS, renderer gap 1).
+    return {"supplier": f.get("supplier"), "services": f.get("fuels"), "tariff": f.get("tariff_type_or_name"),
+            "monthly_payment_gbp": None, "tariff_end": f.get("tariff_end")}
+
+
+def _totals(pages: list[dict], actions: list[dict]) -> dict:
+    """PHASE_1_REPORT_RENDERER_CONTRACT section 3. Sums use the displayed whole-pound figures so the
+    totals reconcile with what the customer sees on each page (REPORT_OUTPUT_QA section 3)."""
+    spends = [p["current_annual_spend_gbp"] for p in pages if p["current_annual_spend_gbp"] is not None]
+    savings = [p["potential_saving_gbp"] for p in pages if p["potential_saving_gbp"] is not None]
+    return {
+        "annual_spend_gbp": sum(spends) if spends else None,
+        "potential_savings_gbp": sum(savings) if savings else None,  # never a £0 total
+        "services_reviewed": len(pages),
+        "priority_actions": sum(1 for a in actions if a["action_type"] != "Stay put"),
+    }
 
 
 def decision_template(case: dict, calc: dict[str, dict]) -> dict:
@@ -208,6 +250,7 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
             "unit_id": uid,
             "label": label,
             "coverage_status": status,
+            "current_service": current_service(uid, (u.get("calculation_input") or {}).get("facts")),
             "limitation": limitation,
             "estimate_note": estimate_note,
             "current_annual_spend_gbp": round_half_up(spend) if spend is not None and not proceeding else None,
@@ -227,8 +270,8 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
         }
         pages.append(page)
         overview.append({"unit_id": uid, "label": label, "coverage_status": status, "score": score_block, "page": True})
-        actions.append({"unit_id": uid, "label": label, "priority": pr, "action_type": at, "next_step": d.get("next_step"),
-                        "potential_saving_gbp": saving_display})
+        actions.append({"unit_id": uid, "label": label, "priority": pr, "action_type": at, "effort": d.get("effort"),
+                        "next_step": d.get("next_step"), "potential_saving_gbp": saving_display})
 
     summary = (decision.get("report") or {}).get("summary")
     if nonempty_str(summary):
@@ -254,6 +297,7 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
         "overview": overview,
         "service_pages": pages,
         "priority_actions": actions,
+        "totals": _totals(pages, actions),
         "summary": summary if nonempty_str(summary) else None,
         # BILLS_HEALTH_SCORE_METHOD section 6: "Include once per report".
         "report_notes": [SOURCE_LINE],

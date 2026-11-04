@@ -5,4 +5,4 @@ Bills Health Report. No browsing, no LLM calls, no recommendation selection.
 """
 
 ENGINE_VERSION = "0.1.0"
-REPORT_DATA_CONTRACT_VERSION = "1.0"
+REPORT_DATA_CONTRACT_VERSION = "1.1"

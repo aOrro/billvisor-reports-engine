@@ -1,7 +1,6 @@
 """Brief-required end-to-end cases, gates, Review ledger and leakage checks."""
 
 import copy
-import json
 import tempfile
 import unittest
 from decimal import Decimal as D
@@ -51,11 +50,11 @@ class CaseTest(unittest.TestCase):
                     walk(v)
         walk(data)
 
-    def approve_and_build(self, rid, review_result="pass"):
+    def approve_and_build(self, rid, review_result=("Content passed", "none")):
         workflow.run_calc(self.cd, rid)
         workflow.run_approve(self.cd, rid, confirm=True)
         if workflow.review_status(self.cd, rid)["required"]:
-            workflow.review_record(self.cd, rid, review_result, None)
+            workflow.review_record(self.cd, rid, *review_result, None)
         path = workflow.run_build(self.cd, rid)
         data = jsonio.load(path)
         self.assert_no_internal_flags(data)
@@ -79,9 +78,15 @@ class RequiredCases(CaseTest):
         self.assertEqual(data["gate"]["type"], "review")
         self.assertIn("primary_look_at_changing_now", data["gate"]["reasons"])
         # internal values stay internal
-        text = json.dumps(data)
+        text = jsonio.dumps(data)
         for leaked in ("TalkTalk", "Plusnet", "benchmark", "24.0000", "capture-1"):
             self.assertNotIn(leaked, text)
+        # current-service block: the household's own facts only
+        self.assertEqual(p["current_service"], {"provider": "BT", "download_speed_mbps": 67,
+                                                "monthly_cost_gbp": D("39.00"), "contract_end": "out_of_contract"})
+        self.assertEqual(data["totals"], {"annual_spend_gbp": 468, "potential_savings_gbp": 180,
+                                          "services_reviewed": 1, "priority_actions": 1})
+        self.assertEqual(data["priority_actions"][0]["effort"], data["service_pages"][0]["effort"])
 
     def test_2_mobile_floor_only_after_founder_approval(self):
         case = fixture("mobile_small_saving")
@@ -92,6 +97,11 @@ class RequiredCases(CaseTest):
         p = self.page(data, "mobile")
         self.assertEqual((p["score"]["value"], p["score"]["band"]), (75, "Good"))
         self.assertEqual(p["potential_saving_gbp"], 36)  # saving still displayed
+        self.assertEqual(p["current_service"]["plan_type"], "sim_only")
+        self.assertEqual(p["current_service"]["monthly_cost_gbp"], D("15.00"))
+        # Stay put is not counted as a priority action; its displayed saving still counts in the total
+        self.assertEqual(data["totals"], {"annual_spend_gbp": 180, "potential_savings_gbp": 36,
+                                          "services_reviewed": 1, "priority_actions": 0})
 
     def test_2b_floor_refused_without_stay_put_or_with_large_saving(self):
         case = fixture("mobile_small_saving")
@@ -122,6 +132,12 @@ class RequiredCases(CaseTest):
         self.assertEqual(p["score"], {"value": 77, "band": "Good", "colour": "green"})
         self.assertEqual(p["current_annual_spend_gbp"], 1167)
         self.assertIsNone(p["limitation"])
+        # monthly payment stays null until a structured figure is agreed (customer wording is not copied)
+        self.assertEqual(p["current_service"], {"supplier": "British Gas", "services": "both",
+                                                "tariff": "Standard Variable", "monthly_payment_gbp": None,
+                                                "tariff_end": "no_end_date"})
+        self.assertEqual(data["totals"]["annual_spend_gbp"],
+                         sum(pg["current_annual_spend_gbp"] for pg in data["service_pages"]))
         # overall: both services at weight 1.0
         bb = D(80) * D("0.9") + D(100) * (D(12) - D(5)) / D("10.5") * D("0.1")  # Sky rank 5
         en = D(20) + D(60) * D("1107.6155") / D("1167.4955")
@@ -187,6 +203,24 @@ class RequiredCases(CaseTest):
         self.assertEqual(outs["energy_combined"]["issues"][0]["code"], "MINIMUM_FIELD_MISSING")
         self.assertEqual(outs["energy_combined"]["issues"][0]["field"], "facts.payment_method")
 
+    def test_review_gate_blocks_until_passing_outcome(self):
+        rid = self.put(fixture("broadband_saving"))
+        workflow.run_calc(self.cd, rid)
+        workflow.run_approve(self.cd, rid, confirm=True)
+        self.assertTrue(workflow.review_status(self.cd, rid)["required"])
+        with self.assertRaisesRegex(GateError, "Review is required"):
+            workflow.run_build(self.cd, rid)
+        for outcome, severity in (("Content blocked", "major"), ("Escalate before delivery", "none")):
+            workflow.review_record(self.cd, rid, outcome, severity, None)
+            with self.assertRaisesRegex(GateError, "HTML generation is blocked"):
+                workflow.run_build(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "must be 'none'"):
+            workflow.review_record(self.cd, rid, "Content passed", "major", None)
+        workflow.review_record(self.cd, rid, "Content passed after correction", "minor", None)
+        data = jsonio.load(workflow.run_build(self.cd, rid))
+        self.assertEqual((data["gate"]["outcome"], data["gate"]["highest_severity"]),
+                         ("Content passed after correction", "minor"))
+
     def test_postcode_required_for_every_requested_service(self):
         case = fixture("broadband_saving")
         case["case"]["postcode"] = ""
@@ -236,7 +270,7 @@ class RequiredCases(CaseTest):
         rid = self.put(fixture("household_energy_bedroom"))
         workflow.run_calc(self.cd, rid)
         workflow.run_approve(self.cd, rid, confirm=True)
-        workflow.review_record(self.cd, rid, "pass", None)
+        workflow.review_record(self.cd, rid, "Content passed", "none", None)
         base = self.load(rid)
 
         def reset():
@@ -294,38 +328,66 @@ class RequiredCases(CaseTest):
         self.assertNotIn("estimated", p["score"])
 
 
+PASS = ("Content passed", "none")
+
+
 class ReviewLedger(unittest.TestCase):
-    def build(self, rid, reviewed_result=None):
+    def build(self, rid, reviewed=None):
         ev = [{"type": "build", "report_id": rid}]
-        if reviewed_result:
-            ev.insert(0, {"type": "review", "report_id": rid, "result": reviewed_result})
+        if reviewed:
+            outcome, severity = reviewed
+            ev.insert(0, {"type": "review", "report_id": rid, "outcome": outcome, "highest_severity": severity})
         return ev
 
     def test_first_five_then_one_in_five(self):
         events = []
         for i in range(5):
-            events += self.build(f"R{i}", "pass")
+            events += self.build(f"R{i}", PASS)
         led = {"events": events}
         self.assertEqual(review.triggers(led, "R5", {}), [])
         for i in range(5, 9):
             events += self.build(f"R{i}")
         self.assertEqual(review.triggers(led, "R9", {}), ["one_in_five_spot_check"])
-        events += self.build("R9", "pass")
+        events += self.build("R9", PASS)
         self.assertEqual(review.triggers(led, "R10", {}), [])
 
     def test_defect_resets_clean_count(self):
         events = []
         for i in range(5):
-            events += self.build(f"R{i}", "pass")
-        events += self.build("R5", "major")
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content blocked", "major"))
         led = {"events": events}
         self.assertIn("defect_reset_until_five_clean", review.triggers(led, "R6", {}))
         for i in range(6, 11):
-            events += self.build(f"R{i}", "pass")
+            events += self.build(f"R{i}", PASS)
         self.assertEqual(review.triggers(led, "R11", {}), [])
 
+    def test_major_corrected_and_passed_still_resets(self):
+        events = []
+        for i in range(5):
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content passed after correction", "major"))
+        led = {"events": events}
+        self.assertIn("defect_reset_until_five_clean", review.triggers(led, "R6", {}))
+
+    def test_minor_correction_does_not_reset(self):
+        events = []
+        for i in range(5):
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content passed after correction", "minor"))
+        self.assertEqual(review.triggers({"events": events}, "R6", {}), [])
+
+    def test_record_consistency(self):
+        review.validate_record("Content blocked", "major")
+        with self.assertRaisesRegex(ValueError, "must be 'none'"):
+            review.validate_record("Content passed", "minor")
+        with self.assertRaisesRegex(ValueError, "severity of the corrected defect"):
+            review.validate_record("Content passed after correction", "none")
+        with self.assertRaisesRegex(ValueError, "outcome must be one of"):
+            review.validate_record("pass", "none")
+
     def test_flags(self):
-        led = {"events": [e for i in range(5) for e in self.build(f"R{i}", "pass")]}
+        led = {"events": [e for i in range(5) for e in self.build(f"R{i}", PASS)]}
         self.assertEqual(review.triggers(led, "X", {"primary_look_at_changing_now": True}), ["primary_look_at_changing_now"])
 
 

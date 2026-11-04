@@ -254,18 +254,21 @@ def review_status(cases_dir: Path, report_id: str) -> dict:
             "recorded_review": (case.get("workflow") or {}).get("review")}
 
 
-def review_record(cases_dir: Path, report_id: str, result: str, note: str | None) -> dict:
-    if result not in review.RESULTS:
-        raise GateError(f"Review result must be one of {review.RESULTS}.")
+def review_record(cases_dir: Path, report_id: str, outcome: str, highest_severity: str, note: str | None) -> dict:
+    try:
+        review.validate_record(outcome, highest_severity)
+    except ValueError as exc:
+        raise GateError(str(exc)) from None
     case = load_case(cases_dir, report_id)
     outputs = verify_calc(case)
     verify_approval(case, outputs)
     appr = case["workflow"]["approval"]
-    rec = {"result": result, "content_fp": appr["content_fp"], "report_version": appr["report_version"],
+    rec = {"outcome": outcome, "highest_severity": highest_severity, "content_fp": appr["content_fp"], "report_version": appr["report_version"],
            "recorded_at": now(), "note": note}
     case["workflow"]["review"] = rec
     save_case(cases_dir, report_id, case)
-    review.append(cases_dir, {"type": "review", "report_id": report_id, "version": appr["report_version"], "result": result})
+    review.append(cases_dir, {"type": "review", "report_id": report_id, "version": appr["report_version"],
+                              "outcome": outcome, "highest_severity": highest_severity})
     return rec
 
 
@@ -282,11 +285,13 @@ def run_build(cases_dir: Path, report_id: str) -> Path:
         if not rv or rv.get("content_fp") != appr["content_fp"]:
             raise GateError(f"Review is required ({', '.join(reasons)}) and no Review result matches this approved "
                             "content. Hand the approved package to Review, then run: review-record")
-        if rv["result"] not in review.CLEAN:
-            raise GateError(f"Review found a {rv['result']} defect. Correct the case, bump report_version, approve and review again.")
-        gate = {"type": "review", "reasons": reasons, "result": rv["result"]}
+        if rv["outcome"] not in review.PASSING_OUTCOMES:
+            raise GateError(f"Review outcome is '{rv['outcome']}' (highest severity {rv['highest_severity']}). "
+                            "HTML generation is blocked. Correct the case, bump report_version, approve and review again.")
+        gate = {"type": "review", "reasons": reasons, "outcome": rv["outcome"],
+                "highest_severity": rv["highest_severity"]}
     else:
-        gate = {"type": "deterministic_validation", "reasons": [], "result": "pass"}
+        gate = {"type": "deterministic_validation", "reasons": [], "outcome": "pass"}
 
     body = copy.deepcopy(result["body"])
     body["report"]["approved_at"] = appr["approved_at"]

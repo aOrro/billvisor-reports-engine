@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .calc import LABELS, LIMITATION_DEFAULT_TEXT, unit_sort_key
 from .energy import ESTIMATE_WORDING
+from .report_data import current_service
 from .score import COLOUR, floor_eligible
 from .values import gbp, gbp_whole, round_half_up
 
@@ -80,6 +81,9 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
             L.append("  - no numeric score")
 
         L.append("- Customer-facing fields this service would show:")
+        cs = current_service(u["id"], (u.get("calculation_input") or {}).get("facts"))
+        L.append("  - current service (your own details, shown as supplied): "
+                 + "; ".join(f"{k}: {'—' if v is None else v}" for k, v in cs.items()))
         L.append(f"  - annual spend: {gbp_whole(round_half_up(spend))}"
                  + (" (estimated annual cost)" if "energy" in out else " (monthly payment x 12)"))
         if "comparison" in out:

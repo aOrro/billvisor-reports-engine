@@ -346,3 +346,69 @@ Items A1–A8 change or fill in the approved design. `LIVE_CASE_CALCULATOR_SPEC.
       - A Major or Critical severity resets the clean-run count.
 
     Confirm or amend.
+
+## Review of 9f65464: renderer contract gaps
+
+Checked on 4 November 2026. `PHASE_1_REPORT_RENDERER_CONTRACT.md` resolves A1–A8 and B9–B10.
+
+The gaps below are where the contract, the approved template and the engine's data still do not meet. Items 1–8 block the renderer. Each needs a founder answer in the renderer contract source, recopied here.
+
+### Done in the engine (this commit)
+
+- **Review record.** `review-record --outcome passed|passed-after-correction|blocked|escalate --severity none|minor|major|critical` stores the exact `REPORT_OUTPUT_QA.md` wording.
+  - Only the two passing outcomes allow `build`.
+  - `major` or `critical` resets the clean-run count, even when the content was later corrected and passed.
+  - "Content passed" requires severity `none`, because QA defines it as no defect found.
+  - "Content passed after correction" requires a severity above `none`.
+- **`current_service`** on each service page. It holds the household's own facts, in the field order of contract §4, and is printed in the approval pack.
+- **`totals`** (contract §3), summed from the displayed whole-pound figures so they reconcile with each page.
+- **`effort`** on each priority action.
+- **Contract version.** `docs/REPORT_DATA_CONTRACT.md` is now v1.1.
+
+### Gaps that block the renderer
+
+1. **Energy "Monthly payment: £X" has no number to use.**
+   - `facts.approximate_payment` holds the customer's own wording, for example "about £95 a month". The spec's worked example (`LIVE_CASE_CALCULATOR_SPEC.md:250`) even gives an annual range.
+   - `current_service.monthly_payment_gbp` is therefore null for now.
+   - Decide between two options:
+     - add a numeric `approximate_monthly_payment_gbp` fact, recorded by Operations from the customer's answer;
+     - show founder-approved display text instead.
+2. **The fixed energy sentence is not always true.**
+   - "This uses your current tariff and estimated energy use…" is mandatory on every Energy page (contract §4).
+   - It is untrue when the customer supplied actual 12-month usage.
+   - When the bedroom fallback is used, it repeats the estimate note ("Your consumption was estimated from households with similar characteristics.").
+   - Decide on wording per consumption source, or whether this sentence replaces the estimate note.
+3. **"Similar services cost" is missing "about".** `MEMORY.md:35` and QA §3 require "about £X" for this figure. The contract §4 figure row gives only the label. Confirm the value renders as "about £X". `comparison_text` already says "Similar services cost about £X a year."
+4. **No place for the energy saving.**
+   - The contract's totals include any founder-shown saving, and energy can have one (payment-method or tariff-fit difference).
+   - Contract §4 lists only monthly payment and estimated annual cost for the Energy page.
+   - Decide whether an Energy page shows a founder-approved potential saving, and where.
+5. **Overview columns.**
+   - Contract §3 lists: label, annual spend, market position, potential saving and selected next action.
+   - The template's page 2 has a Health score column and no next-action column.
+   - Confirm the columns. Since market position is now the score band, a separate score column may be redundant.
+6. **Priority chips.**
+   - Pages 3 and 7 show "High priority / Medium priority / None" chips and a Priority column.
+   - The contract says not to map the founder's numeric priority to labels, but does not say what replaces the chip.
+   - Decide whether to remove it or show something else.
+7. **Text slots with no data source.** Map each slot to an existing approved field (`headline`, `explanation`, `next_step`, `summary`, `findings`) or name a new founder-approved field:
+   - page 1: "Our top recommendation" (title and sentence);
+   - service pages: "How it compares" (sentence) and "Our recommendation" (title and sentence);
+   - page 2: the summary under the totals ("Focus on broadband and electricity…");
+   - page 3: "Why these priorities?";
+   - page 7: "If you only do one thing…", "Staying put is still a useful outcome" (paragraph) and "We are here to help" (fixed text or founder text).
+8. **Display wording for codes and dates.**
+   - Contract and tariff end: `out_of_contract`, `unknown` and `no_end_date`.
+   - Date format: the template uses "18 Sep 2026"; the engine's long form is "18 September 2026".
+   - Mobile Plan type: `sim_only` and `handset_included`.
+   - Unlimited data.
+   - Energy Services: `both`, `gas` and `electricity`.
+   - The template's mobile example shows "No contract", but the spec has no such value. Is a rolling monthly plan `out_of_contract`?
+
+### Repository hygiene
+
+9. **`docs/governing/DECISION_REGISTER.md`.**
+   - It was added in 9f65464 but is not listed in `docs/governing/README.md`.
+   - It is the company-wide decision register (524 lines). It includes mailbox security set-up, pilot data handling and other matters that do not govern this engine.
+   - `MEMORY.md:62` links to it, which is presumably why it was copied.
+   - Recommendation: remove it from the repo, or list it in the README as context only. Either way, confirm the GitHub repo is private.

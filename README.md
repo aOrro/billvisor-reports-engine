@@ -32,12 +32,12 @@ python3 -m billvisor pack BV-0007         # approval-pack.md + a blank `decision
 python3 -m billvisor approve BV-0007      # preview: every check, no record
 python3 -m billvisor approve BV-0007 --yes  # record the approval snapshot and fingerprints
 python3 -m billvisor review-status BV-0007
-python3 -m billvisor review-record BV-0007 --result pass   # only when Review is required
+python3 -m billvisor review-record BV-0007 --outcome passed --severity none   # only when Review is required
 python3 -m billvisor build BV-0007        # report_data.v<N>.json (all gates re-checked)
 ```
 
 `build` refuses when inputs, calculation, decision or customer content changed after approval. It also refuses
-when a required Review is missing, stale or found a Major or Critical defect.
+when a required Review is missing, stale, or its outcome is Content blocked or Escalate before delivery.
 A correction means bumping `case.report_version`, then calc, approve and build again.
 
 ## case.json (per analysis unit)
@@ -92,9 +92,14 @@ An energy score exists only when the founder selects one route:
   unless the provider table sets `sources_publicly_accessible: true`.
 - How Review triggers are counted:
   - "first five" means fewer than five other reports have been built;
-  - after a Major or Critical defect, Review continues until five later reviewed reports pass;
+  - after a review with highest severity major or critical, Review continues until five later reviewed reports pass
+    cleanly (outcome passed or passed after correction, highest severity none or minor);
   - otherwise the next report after four unreviewed reports in a row is spot-checked.
   The ledger is `<cases-dir>/_review_ledger.json`.
+- A Review record has an outcome (`--outcome passed | passed-after-correction | blocked | escalate`, stored with the
+  REPORT_OUTPUT_QA.md wording) and the highest defect severity (`--severity none | minor | major | critical`). Only the
+  two passing outcomes allow `build`. "Content passed" requires severity none; "passed after correction" requires a
+  severity above none.
 - The leakage check blocks: "benchmark", provider names from captures (case-sensitive), source names, £0, guaranteed, best deal,
   whole market, cheapest, reviews, "about" before a saving, and customer-blame wording (except on Confirm-information pages).
 
