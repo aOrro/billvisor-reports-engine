@@ -1,7 +1,9 @@
 # Governing documents
 
-The documents below govern this engine and take precedence over the build brief. Copy the originals here
-unchanged from `context-files/`. They are not retyped, so that a transcription error can't create a rule.
+The documents below govern this engine and take precedence over the build brief. They are copied unchanged
+from the approved Business Planning `context-files/` source at the point this branch was created. When a
+founder decision changes an authority, refresh the corresponding copy here and record the source date in the
+commit message before changing implementation.
 
 | File | Source |
 |---|---|
@@ -12,10 +14,13 @@ unchanged from `context-files/`. They are not retyped, so that a transcription e
 | LIVE_CASE_CALCULATOR_SPEC.md | context-files/operations/ |
 | PHASE_1_WELCOME_EMAIL_TEMPLATE.md | context-files/operations/ |
 | PHASE_1_OFFER_DATA_METHOD.md | context-files/evidence/comparison-data/ |
-| BROADBAND / MOBILE / ENERGY_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/ |
+| PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/ |
+| BROADBAND_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/broadband/ |
+| MOBILE_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/mobile/ |
+| ENERGY_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/energy/ |
 | BROADBAND_PROVIDER_SCORES.md, MOBILE_PROVIDER_SCORES.md | data-files/evidence/provider-scoring/ (structured copies in `reference/provider_tables/`) |
 | CLAUDE_REPORT_GENERATOR_BUILD_BRIEF.md | build brief (lowest authority) |
-| REPORT_OUTPUT_QA.md, PHASE_1_EMAIL_UX.md | not yet supplied |
+| REPORT_OUTPUT_QA.md, PHASE_1_EMAIL_UX.md | not yet supplied; add only when the engine takes responsibility for those controls |
 
 ## Founder rulings applied where documents conflict (2026-11-04)
 
