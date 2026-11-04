@@ -168,3 +168,55 @@ Checked and resolved on 4 November 2026. Items 1 and 2 were corrected in the `co
 - `README.md:56` and `:84` say "Estimated score".
 
 The internal flag stays; it is not shown to customers.
+
+## Open questions for the next phase
+
+Recorded on 4 November 2026. These need an answer from the founder, or files from the other laptop, before the related item can be built. Answer each one in place, or point to the commit that resolves it.
+
+### A. Files and data needed
+
+1. **Approved report design (blocks item 1).**
+   - Copy the template and assets from `/Users/anton/billvisor/design/report/` into a clearly labelled repo folder, such as `templates/report/`. Say which version is the approved one.
+   - Before committing, check that no example render, screenshot, PDF or sample data in that folder contains real customer details: names, postcodes, providers tied to a person, amounts or dates. Replace any with synthetic values.
+   - Say whether an existing renderer (for example `generate_report.py`) or a structured-input schema belongs with the design. If one does, add it as well. Item 1 should reuse its field names rather than invent new ones, and `docs/REPORT_DATA_CONTRACT.md` still says "to reconcile with generate_report.py".
+2. **Current-service fields per service (blocks item 2).**
+   - List exactly which current-service details the approved template shows for broadband, mobile and energy, with their labels.
+   - `MEMORY.md:35` mentions a "plan", but `LIVE_CASE_CALCULATOR_SPEC.md` has no plan or package-name fact for broadband or mobile. Confirm whether the template shows one. If it does, a new optional fact is needed.
+   - Confirm the energy "payment" shown is the customer's approximate payment as supplied, not a figure the engine calculates.
+3. **Regression cases (blocks item 4).** Provide two anonymised cases matching the patterns in item 4:
+   - each case's inputs in the engine's `case.json` format;
+   - expected values taken from the approved reports, not from running this engine: scores, bands, statuses, pages, action order and displayed figures.
+
+   Use neutral folder names, such as `tests/regression/case-a/`.
+4. **Provider score tables.**
+   - Copy `BROADBAND_PROVIDER_SCORES.md` and `MOBILE_PROVIDER_SCORES.md` from `data-files/evidence/provider-scoring/` into `docs/governing/`. They are listed in the README but missing.
+   - For each table, confirm three values that are still placeholders in `reference/provider_tables/*.json`:
+     - `table_version`, currently "2026-11-04-as-supplied";
+     - `table_date`;
+     - `sources_publicly_accessible`, currently null.
+
+   While `sources_publicly_accessible` is not true, any case where provider quality lowers the score band stops with `METHOD_OR_SOURCE_RULE_MISSING`. The approved note says "Recent public data…", which may be used only when the sources really are public (`BILLS_HEALTH_SCORE_METHOD.md:149`).
+
+### B. Engine readings to confirm
+
+The engine currently works as described below. Confirm each one, or say what should change.
+
+5. **Energy annual spend, the most material question.**
+   - For energy, the engine uses the current tariff's estimated annual cost for two things: the "current annual spend" figure on the page, and energy's weight in the overall score.
+   - `MEMORY.md:35` defines current annual spend as the submitted monthly payment × 12. That line is written about broadband and mobile.
+   - The alternative is the customer's approximate payment annualised. The choice can change the overall score.
+6. **Same-provider tariff-fit.** A tariff-fit comparison must be with the customer's current provider. `LIVE_CASE_CALCULATOR_SPEC.md:122` requires this. `BILLS_HEALTH_SCORE_METHOD.md` §2.1 and `MEMORY.md:36` do not mention provider.
+7. **Mobile `handset_included`.**
+   - Mobile facts require a true/false `handset_included`, recorded from the customer's handset/extras answer. The engine uses it to stop a handset price being compared with SIM-only, as `LIVE_CASE_CALCULATOR_SPEC.md:63` requires.
+   - The field is not in the spec's fact list. Confirm it can be added there.
+8. **Broadband postcode not required.** This follows the spec's broadband fact list, not the build brief.
+9. **Economy 7 / multi-rate electricity.**
+   - These cases stop with `CALCULATOR_CANNOT_SAFELY_PROCESS` and go to Evidence.
+   - The register-level qualified tariff-fit route in `BILLS_HEALTH_SCORE_METHOD.md` §2.1 is not built.
+   - Confirm stopping is acceptable for Phase 1, or ask for that route to be built.
+10. **How Review triggers are counted** (`PHASE_1_CASE_OPERATING_METHOD.md` §3):
+    - "first five" means fewer than five earlier reports have been built;
+    - after a Major or Critical defect, Review continues until five later reviewed reports pass in a row;
+    - otherwise, the next report after four unreviewed reports in a row is spot-checked.
+
+    `REPORT_OUTPUT_QA.md` is not in the repo. Supply it if Review's checks should be enforced by the engine rather than recorded as a pass/fail result.
