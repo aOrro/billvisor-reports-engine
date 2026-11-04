@@ -282,6 +282,37 @@ Before requesting founder visual review, add synthetic tests proving that the re
 customer-visible `Estimated` score label, and contains no broken workspace asset path. Use wholly synthetic
 fixtures only.
 
+## Founder answers recorded — final renderer mapping (4 November 2026)
+
+The following completes the renderer decisions. Update `PHASE_1_REPORT_RENDERER_CONTRACT.md` is the authority;
+this section is the implementation checklist.
+
+1. **Energy monthly payment:** add optional `facts.approximate_monthly_payment_gbp`. Operations populates it only
+   when it can unambiguously normalise the customer's existing `approximate_payment` answer. It is display-only;
+   do not ask a further question or use it for Energy annual spend. Render it when present and omit the field when
+   absent.
+2. **Energy sentence:** render exactly: `This uses your current tariff and the annual energy-use figure available
+   for your home. Your monthly payments may vary through the year.` Keep the separate bedroom-fallback estimate
+   note where applicable.
+3. **Comparison wording:** Broadband/Mobile figure row must say `Similar services cost about £X a year.`
+4. **Energy saving:** where `potential_saving_gbp` is founder-selected for display, show it beneath the annual
+   Energy figures. Do not show £0.
+5. **Overview columns:** retain the approved design's Service, Annual spend, Market position, Potential savings and
+   Health score columns. Do not add a next-action column.
+6. **Priority labels:** remove High/Medium/None chips and the Priority label/column. Keep literal founder actions;
+   a Stay put action may show `No action needed`.
+7. **Text slots:** cover uses fixed `Our top recommendation` + primary `next_step` + `explanation`; service pages
+   use `headline` under `How it compares` and fixed `Our recommendation` + `next_step` + `explanation`;
+   report-level summary uses `report.summary`; a distinct `Why these priorities?` paragraph is optional
+   `report.priority_reason`; final page uses fixed `If you only do one thing` + primary action fields + the
+   existing fixed reply invitation. All non-fixed text remains founder-approved.
+8. **Code/date display:** render `out_of_contract` as `Out of contract`; `unknown`/`no_end_date` as `No end date
+   known`; ISO dates in `23 May 2026` form; `sim_only` as `SIM only`; `handset_included` as `Handset included`;
+   unlimited data as `Unlimited data`; `both` as `Gas and electricity`; and `gas`/`electricity` as title case.
+   A rolling monthly mobile plan is `Out of contract`.
+9. **Repository minimisation:** `docs/governing/DECISION_REGISTER.md` has been removed. Do not restore it; the
+   renderer contract and the remaining scoped governing documents provide its required policy context.
+
 ## Review of 6c5a595: template and QA conflicts
 
 Checked on 4 November 2026.

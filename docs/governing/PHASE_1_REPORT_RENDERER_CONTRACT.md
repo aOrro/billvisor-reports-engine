@@ -34,7 +34,7 @@ The renderer must not expose provider means, individual offers, named comparison
 
 ## 3. Overview, summary and totals
 
-The overview uses one row for every requested service unit and contains the approved service label, annual spend, market position, positive potential saving where founder-approved, and the selected next action.
+The overview uses one row for every requested service unit and retains these columns: service, annual spend, market position, positive potential saving where founder-approved, and Health score. It does not add a next-action column.
 
 - **Annual spend:** sum the current annual spend for Analysed and Analysed-with-limitations service units only.
 - **Potential savings:** sum only positive savings that the founder selected for display.
@@ -42,6 +42,7 @@ The overview uses one row for every requested service unit and contains the appr
 - **Priority actions:** count selected actions other than **Stay put**.
 - A **Stay put** action displays **No action needed**.
 - Priority actions order by founder-supplied priority. When two actions have the same priority, order by displayed potential saving descending. Do not create a numeric priority map in the renderer.
+- Do not render High/Medium priority chips. Ordering communicates priority; a Stay put card may display **No action needed**.
 
 ## 4. Current-service sections and service-page figures
 
@@ -56,21 +57,23 @@ Render only these labels and values when supplied in approved `report_data`:
 For Broadband and Mobile, place a compact figure row directly beneath the current-service section:
 
 1. **You pay each year**;
-2. **Similar services cost**; and
+2. **Similar services cost about £X a year**; and
 3. **Potential saving**, only where the founder selected a positive saving for display.
 
 Retain the qualitative **What this means** section below it.
 
 For Energy, show both:
 
-- **Monthly payment: £X**; and
+- **Monthly payment: £X**, where Operations can unambiguously normalise the customer-supplied amount; otherwise omit this field rather than infer a number; and
 - **Estimated annual energy cost: £Y**.
 
 The Energy service page must include this fixed explanatory sentence in **What this means**:
 
-> This uses your current tariff and estimated energy use. Your monthly payments may vary through the year.
+> This uses your current tariff and the annual energy-use figure available for your home. Your monthly payments may vary through the year.
 
 The calculated annual tariff cost is the Energy current annual spend and report-weight value. Monthly payment is a customer-supplied sense-check, not a calculation substitute.
+
+Where the founder selected a positive Energy saving for display, show **Potential saving** beneath the Energy annual-cost figures. The energy-specific estimate/limitation wording remains in **What this means**.
 
 ## 5. Narrative placement
 
@@ -97,6 +100,31 @@ During integration, correct the existing synthetic-template defects rather than 
 1. A score of 74 must render **Medium** and use the Medium gauge/colour, never Good/green.
 2. The cover house illustration must use a repository-vended local asset and must not retain an absolute or broken path to the Business Planning workspace.
 
+## 8. Stable text and display formatting
+
+Use existing founder-approved content fields without inventing prose:
+
+- cover/top recommendation: fixed heading **Our top recommendation**, then the selected primary action's `next_step` and `explanation`;
+- service page: `headline` for **How it compares**; fixed heading **Our recommendation**, then `next_step` and `explanation`;
+- report summary: `report.summary` where the layout needs its concise cross-report summary;
+- priority explanation: optional founder-approved `report.priority_reason` only when a distinct **Why these priorities?** paragraph is wanted; and
+- final page: fixed heading **If you only do one thing**, the primary action's `next_step` and `explanation`, plus the fixed reply invitation already approved for the report template.
+
+Render structured codes as follows:
+
+| Input | Customer display |
+|---|---|
+| `out_of_contract` | Out of contract |
+| `unknown` or `no_end_date` | No end date known |
+| ISO date | `23 May 2026` style |
+| `sim_only` | SIM only |
+| `handset_included` | Handset included |
+| unlimited data | Unlimited data |
+| `both` Energy services | Gas and electricity |
+| `gas` / `electricity` Energy services | Gas / Electricity |
+
+A rolling monthly mobile plan is displayed as **Out of contract**.
+
 The renderer must have synthetic acceptance coverage for:
 
 - score values, bands, arcs and colours;
@@ -107,4 +135,3 @@ The renderer must have synthetic acceptance coverage for:
 - totals and action ordering;
 - Confirm information lists; and
 - no customer-visible `Estimated` score label, raw sources or internal-only fields.
-

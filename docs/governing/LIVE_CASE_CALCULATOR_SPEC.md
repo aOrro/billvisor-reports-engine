@@ -72,6 +72,7 @@ The calculator must not treat a handset-inclusive price as SIM-only.
 | `supplier` | R |
 | `fuels` | R: gas, electricity or both |
 | `approximate_payment` | R: monthly amount or supplied payment pattern |
+| `approximate_monthly_payment_gbp` | O: Operations' numeric normalisation of an unambiguous monthly amount already supplied in `approximate_payment`; display-only sense-check, never a substitute for tariff-cost calculation |
 | `payment_method` | R |
 | `tariff_type_or_name` | R; `unknown` is a valid supplied value |
 | `tariff_end` | R; date, `no_end_date`, or `unknown` |
