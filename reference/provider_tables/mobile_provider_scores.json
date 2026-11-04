@@ -1,0 +1,65 @@
+{
+  "table_ref": "mobile_provider_scores",
+  "service": "mobile",
+  "table_version": "2026-11-04-as-supplied",
+  "table_date": "2026-11-04",
+  "_note": "Structured snapshot of MOBILE_PROVIDER_SCORES.md as pasted by the founder on 2026-11-04. Confirm table_version/table_date with Evidence. Set sources_publicly_accessible to true only when the underlying sources are genuinely publicly accessible (required before the 'Recent public data...' provider note can be used).",
+  "sources_publicly_accessible": null,
+  "rows": [
+    {
+      "provider": "Tesco Mobile",
+      "overall": 8.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "EE",
+      "overall": 8.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "giffgaff",
+      "overall": 8.0,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Lebara",
+      "overall": 7.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "SMARTY",
+      "overall": 7.5,
+      "confidence": "Low"
+    },
+    {
+      "provider": "VOXI",
+      "overall": 7.5,
+      "confidence": "Low"
+    },
+    {
+      "provider": "Vodafone",
+      "overall": 7.0,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "iD Mobile",
+      "overall": 7.0,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Sky Mobile",
+      "overall": 6.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Three",
+      "overall": 6.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "O2",
+      "overall": 6.0,
+      "confidence": "High"
+    }
+  ]
+}

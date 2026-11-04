@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "case": {"report_id": "TEST-HH-001", "first_name": "Jo", "postcode": "TN1 1BN", "report_version": 1},
+  "analysis_units": [
+    {
+      "id": "broadband",
+      "services": ["broadband"],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "email-2026-11-03",
+        "facts": {"provider": "Sky", "download_speed_mbps": 75, "monthly_price_gbp": 25.00, "contract_end": "2027-03-15"},
+        "provider_table": {"table_ref": "broadband_provider_scores", "table_version": "2026-11-04-as-supplied", "provider_id": "Sky"},
+        "observations": [
+          {"observation_id": "b1", "service": "broadband", "provider": "Vodafone", "package_label": "Full Fibre 74",
+           "package_attributes": {"download_speed_mbps": 74}, "recurring_price_periods": [{"price_gbp": 24.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"}, "source_ref": "capture-3", "captured_at": "2026-11-04",
+           "comparison_disposition": "include"},
+          {"observation_id": "b2", "service": "broadband", "provider": "Plusnet", "package_label": "Full Fibre 74",
+           "package_attributes": {"download_speed_mbps": 74}, "recurring_price_periods": [{"price_gbp": 25.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"}, "source_ref": "capture-3", "captured_at": "2026-11-04",
+           "comparison_disposition": "include"},
+          {"observation_id": "b3", "service": "broadband", "provider": "TalkTalk", "package_label": "Full Fibre 75",
+           "package_attributes": {"download_speed_mbps": 75}, "recurring_price_periods": [{"price_gbp": 26.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"}, "source_ref": "capture-3", "captured_at": "2026-11-04",
+           "comparison_disposition": "include"}
+        ]
+      }
+    },
+    {"id": "mobile", "services": ["mobile"], "requested": false, "calculation_input": {}},
+    {
+      "id": "energy_combined",
+      "services": ["gas", "electricity"],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "email-2026-11-03",
+        "facts": {"supplier": "British Gas", "fuels": "both", "approximate_payment": "about £95 a month",
+                  "payment_method": "Direct Debit", "tariff_type_or_name": "Standard Variable", "tariff_end": "no_end_date",
+                  "bedrooms": 2, "specialist_setup": "none"},
+        "tariff_fit_score_observation_id": "e2",
+        "observations": [
+          {"observation_id": "e1", "role": "current_cost_model", "provider": "British Gas", "tariff_label": "Standard Variable",
+           "tariff_type": "variable", "region": "South East", "fuels": "both", "meter_type": "single_rate",
+           "payment_method": "Direct Debit",
+           "rates": {"electricity": {"unit_rate_p_per_kwh": 27.03, "standing_charge_p_per_day": 53.80},
+                     "gas": {"unit_rate_p_per_kwh": 6.99, "standing_charge_p_per_day": 32.67}},
+           "tariff_end": "no_end_date", "exit_fee_gbp": 0, "source_ref": "capture-4", "captured_at": "2026-11-04"},
+          {"observation_id": "e2", "role": "accessible_alternative", "provider": "British Gas", "tariff_label": "Fixed 12M",
+           "tariff_type": "fixed", "region": "South East", "fuels": "both", "meter_type": "single_rate",
+           "payment_method": "Direct Debit",
+           "rates": {"electricity": {"unit_rate_p_per_kwh": 25.50, "standing_charge_p_per_day": 53.80},
+                     "gas": {"unit_rate_p_per_kwh": 6.40, "standing_charge_p_per_day": 32.67}},
+           "tariff_end": "2027-11-30", "exit_fee_gbp": 50, "source_ref": "capture-4", "captured_at": "2026-11-04"}
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "units": {
+      "broadband": {
+        "action_type": "Review later", "effort": "Moderate", "priority": 2,
+        "headline": "Your broadband is in line with similar packages",
+        "explanation": "You pay about what similar packages cost.",
+        "next_step": "Check prices again shortly before your contract ends.",
+        "limitation_text": null, "show_saving": false, "small_saving_not_worth_effort": false,
+        "findings_shown": ["contract_end_date"], "proceed_as": null
+      },
+      "energy_combined": {
+        "action_type": "Stay put", "effort": "Moderate", "priority": 1,
+        "headline": "Your energy tariff looks reasonable",
+        "explanation": "A fixed tariff from your supplier would cost slightly less, but the difference is modest.",
+        "next_step": "Stay on your current tariff for now.",
+        "limitation_text": null, "show_saving": false, "small_saving_not_worth_effort": false,
+        "findings_shown": ["no_tariff_end_date"], "proceed_as": null
+      }
+    },
+    "report": {"summary": null},
+    "manual_override": false
+  }
+}

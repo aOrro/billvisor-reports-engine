@@ -1,0 +1,70 @@
+{
+  "table_ref": "broadband_provider_scores",
+  "service": "broadband",
+  "table_version": "2026-11-04-as-supplied",
+  "table_date": "2026-11-04",
+  "_note": "Structured snapshot of BROADBAND_PROVIDER_SCORES.md as pasted by the founder on 2026-11-04. Confirm table_version/table_date with Evidence. Set sources_publicly_accessible to true only when the underlying sources are genuinely publicly accessible (required before the 'Recent public data...' provider note can be used).",
+  "sources_publicly_accessible": null,
+  "rows": [
+    {
+      "provider": "Zen Internet",
+      "overall": 8.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Community Fibre",
+      "overall": 8.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Plusnet",
+      "overall": 8.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "Hyperoptic",
+      "overall": 8.0,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "Sky",
+      "overall": 7.5,
+      "confidence": "High"
+    },
+    {
+      "provider": "Virgin Media",
+      "overall": 7.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "Vodafone",
+      "overall": 7.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "EE",
+      "overall": 7.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "BT",
+      "overall": 7.0,
+      "confidence": "High"
+    },
+    {
+      "provider": "TalkTalk",
+      "overall": 6.5,
+      "confidence": "High"
+    },
+    {
+      "provider": "Utility Warehouse",
+      "overall": 6.5,
+      "confidence": "Medium"
+    },
+    {
+      "provider": "NOW Broadband",
+      "overall": 6.0,
+      "confidence": "Medium"
+    }
+  ]
+}

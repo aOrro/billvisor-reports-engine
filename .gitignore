@@ -1,0 +1,14 @@
+# Real customer case data must never enter this repository.
+cases/
+*.case.json
+out/
+_review_ledger.json
+report_data.v*.json
+approval-pack.md
+trace.txt
+
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store

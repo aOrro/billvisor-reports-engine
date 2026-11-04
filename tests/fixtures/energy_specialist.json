@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0",
+  "case": {"report_id": "TEST-EN-002", "first_name": "Chris", "postcode": "CF10 1AA", "report_version": 1},
+  "analysis_units": [
+    {"id": "broadband", "services": ["broadband"], "requested": false, "calculation_input": {}},
+    {"id": "mobile", "services": ["mobile"], "requested": false, "calculation_input": {}},
+    {
+      "id": "energy_combined",
+      "services": ["gas", "electricity"],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "email-2026-11-03",
+        "facts": {"supplier": "Octopus Energy", "fuels": "both", "approximate_payment": "£140 a month",
+                  "payment_method": "Direct Debit", "tariff_type_or_name": "Flexible", "tariff_end": "no_end_date",
+                  "bedrooms": 3, "specialist_setup": "heat_pump"},
+        "observations": []
+      }
+    }
+  ],
+  "decision": {
+    "units": {
+      "energy_combined": {
+        "action_type": "Confirm information", "effort": null, "priority": 1,
+        "headline": "We need your annual energy use",
+        "explanation": "Because you have a heat pump, a typical-household estimate would not reflect your energy use.",
+        "next_step": "Reply with your annual electricity and gas use from a recent bill or your supplier account.",
+        "limitation_text": "With a heat pump, we need your actual annual energy use to compare your tariff.",
+        "show_saving": false, "small_saving_not_worth_effort": false, "findings_shown": [],
+        "proceed_as": "confirm_information"
+      }
+    },
+    "report": {"summary": null},
+    "manual_override": false
+  }
+}

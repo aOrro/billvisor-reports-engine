@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0",
+  "case": {"report_id": "TEST-BB-001", "first_name": "Sam", "postcode": "TN1 1BN", "report_version": 1},
+  "analysis_units": [
+    {
+      "id": "broadband",
+      "services": ["broadband"],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "email-2026-11-01",
+        "facts": {"provider": "BT", "download_speed_mbps": 67, "monthly_price_gbp": 39.00, "contract_end": "out_of_contract"},
+        "provider_table": {"table_ref": "broadband_provider_scores", "table_version": "2026-11-04-as-supplied", "provider_id": "BT"},
+        "observations": [
+          {"observation_id": "bb1", "service": "broadband", "provider": "Sky", "package_label": "Full Fibre 75",
+           "package_attributes": {"download_speed_mbps": 75, "service_type": "FTTP"},
+           "recurring_price_periods": [{"price_gbp": 22.00, "months": 18}],
+           "compulsory_one_off": {"status": "not_shown"}, "rewards_note": "£50 voucher (excluded)",
+           "source_ref": "capture-1", "captured_at": "2026-11-04", "comparison_disposition": "include"},
+          {"observation_id": "bb2", "service": "broadband", "provider": "Sky", "package_label": "Full Fibre 100",
+           "package_attributes": {"download_speed_mbps": 100, "service_type": "FTTP"},
+           "recurring_price_periods": [{"price_gbp": 26.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"},
+           "source_ref": "capture-1", "captured_at": "2026-11-04", "comparison_disposition": "include"},
+          {"observation_id": "bb3", "service": "broadband", "provider": "TalkTalk", "package_label": "Fibre 65",
+           "package_attributes": {"download_speed_mbps": 67, "service_type": "FTTC"},
+           "recurring_price_periods": [{"price_gbp": 21.00, "months": 18}],
+           "compulsory_one_off": {"status": "shown", "amount_gbp": 9.99},
+           "source_ref": "capture-1", "captured_at": "2026-11-04", "comparison_disposition": "include"},
+          {"observation_id": "bb4", "service": "broadband", "provider": "Vodafone", "package_label": "Full Fibre 74",
+           "package_attributes": {"download_speed_mbps": 74, "service_type": "FTTP"},
+           "recurring_price_periods": [{"price_gbp": 24.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"},
+           "source_ref": "capture-1", "captured_at": "2026-11-04", "comparison_disposition": "include"},
+          {"observation_id": "bb5", "service": "broadband", "provider": "Plusnet", "package_label": "Full Fibre 74",
+           "package_attributes": {"download_speed_mbps": 74, "service_type": "FTTP"},
+           "recurring_price_periods": [{"price_gbp": 25.70}],
+           "compulsory_one_off": {"status": "not_shown"}, "unquantified_future_rise": true,
+           "source_ref": "capture-1", "captured_at": "2026-11-04", "comparison_disposition": "include"},
+          {"observation_id": "bb6", "service": "broadband", "provider": "Three", "package_label": "5G Home Broadband",
+           "package_attributes": {"service_type": "5G home"},
+           "recurring_price_periods": [{"price_gbp": 18.00, "months": 24}],
+           "compulsory_one_off": {"status": "not_shown"},
+           "source_ref": "capture-1", "captured_at": "2026-11-04",
+           "comparison_disposition": "exclude_plainly_not_comparable", "exclusion_reason": "home 5G, not fixed broadband"}
+        ]
+      }
+    },
+    {"id": "mobile", "services": ["mobile"], "requested": false, "calculation_input": {}},
+    {"id": "energy_combined", "services": ["gas", "electricity"], "requested": false, "calculation_input": {}}
+  ],
+  "decision": {
+    "units": {
+      "broadband": {
+        "action_type": "Look at changing now", "effort": "Moderate", "priority": 1,
+        "headline": "Your broadband costs more than similar packages",
+        "explanation": "You pay noticeably more than similar broadband packages cost, and you are out of contract.",
+        "next_step": "Compare a few similar broadband packages and ask your current provider to match them.",
+        "limitation_text": null, "show_saving": true, "small_saving_not_worth_effort": false,
+        "findings_shown": ["out_of_contract"], "proceed_as": null
+      }
+    },
+    "report": {"summary": null},
+    "manual_override": false
+  }
+}
