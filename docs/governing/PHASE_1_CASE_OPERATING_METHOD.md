@@ -9,6 +9,7 @@
 - **Calculations:** [LIVE_CASE_CALCULATOR_SPEC.md](LIVE_CASE_CALCULATOR_SPEC.md), the implemented calculator, the Evidence-owned live offer method and the CEO score method.
 - **Recommendation:** [PHASE_1_RECOMMENDATION_FRAMEWORK.md](../ceo/PHASE_1_RECOMMENDATION_FRAMEWORK.md).
 - **Visual authority:** `/Users/anton/billvisor/design/report/`.
+- **Renderer contract:** [PHASE_1_REPORT_RENDERER_CONTRACT.md](PHASE_1_REPORT_RENDERER_CONTRACT.md).
 - **Review authority:** [REPORT_OUTPUT_QA.md](../review/REPORT_OUTPUT_QA.md).
 
 This document is the sole Operations process authority for an ordinary live case. The detailed calculator specification is a technical reference and is not routine case-reading material. Evidence, Review, CEO, Research, Marketing and Compliance are activated only under the triggers below.
@@ -144,7 +145,7 @@ For a non-sampled ordinary case with no Review trigger, the deterministic valida
 
 After founder approval and either the required Review pass or the valid no-Review deterministic gate:
 
-1. generate one complete fixed-A4 browser-openable HTML report from the approved case JSON and approved page sources;
+1. generate one complete fixed-A4 browser-openable HTML report from approved, fingerprinted report data and approved page sources, following the renderer contract;
 2. include a service page for every Analysed or Analysed-with-limitations unit and none for Not-analysed services;
 3. show one Energy row/page when gas and electricity share one analysis, otherwise use separate units;
 4. apply correct Good/Medium/Poor score values, arcs and green/amber/red colours;

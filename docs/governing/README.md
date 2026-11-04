@@ -11,6 +11,7 @@ commit message before changing implementation.
 | BILLS_HEALTH_SCORE_METHOD.md | context-files/ceo/ |
 | PHASE_1_RECOMMENDATION_FRAMEWORK.md | context-files/ceo/ |
 | PHASE_1_CASE_OPERATING_METHOD.md | context-files/operations/ |
+| PHASE_1_REPORT_RENDERER_CONTRACT.md | context-files/operations/ (authoritative HTML data-mapping and conditional-layout contract) |
 | LIVE_CASE_CALCULATOR_SPEC.md | context-files/operations/ |
 | PHASE_1_WELCOME_EMAIL_TEMPLATE.md | context-files/operations/ |
 | PHASE_1_OFFER_DATA_METHOD.md | context-files/evidence/comparison-data/ |

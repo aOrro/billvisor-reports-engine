@@ -57,12 +57,12 @@ Review verifies transfer and traceability. It does not decide whether Evidence s
 ### 3. Calculations, totals and display values
 
 - [ ] Review independently checks report-level arithmetic using the supplied approved inputs, without reopening Evidence research.
-- [ ] Current annual spend equals the submitted monthly payment multiplied by 12.
+- [ ] Broadband and Mobile current annual spend equal the submitted monthly payment multiplied by 12. Energy current annual spend equals the approved calculated annual tariff cost; its submitted approximate monthly payment is a sense-check only.
 - [ ] Service annual figures, breakdowns and combined totals reconcile without omission or double counting.
 - [ ] For broadband or mobile, the internal annual comparison figure equals the supplied internal monthly comparison value multiplied by 12.
 - [ ] Where the founder approved an estimated potential annual saving, its internal value equals current annual spend minus the internal annual comparison figure and is positive.
 - [ ] All customer-facing annual figures are rounded to the nearest whole pound and match the approved displayed values.
-- [ ] Current annual spend is labelled as annualised from the submitted monthly payment, is not described as a forecast and does not use “about”.
+- [ ] Broadband/Mobile current annual spend is labelled as annualised from the submitted monthly payment, is not described as a forecast and does not use “about”. Energy uses the approved tariff/usage explanation and does not describe monthly-payment × 12 as current annual spend.
 - [ ] The customer-facing similar-services comparison uses “about” and does not expose the internal word “benchmark”.
 - [ ] A displayed potential annual saving is clearly identified as an estimate, does not use an additional “about” prefix and is never £0.
 - [ ] Exact internal values, provider-level averages, individual offers, source lists, sample arithmetic and research-process detail remain internal.
@@ -123,6 +123,13 @@ A Content passed result is not visual approval, PDF approval or delivery approva
 - **Major:** unsupported or missing decision-driving value; calculation or total error; wrong service status; material contradiction; missing or duplicated required content; report/email mismatch; prohibited internal-only content; £0 saving; guaranteed-saving or unsupported whole-market wording. Correct before final HTML generation.
 - **Minor:** non-decisive wording-transfer, label or consistency defect that does not alter the approved meaning. Correct before final HTML generation where practical.
 
+The machine-readable Review record uses both fields below. Only `Content passed` and `Content passed after correction` permit HTML generation:
+
+- **Outcome:** `Content passed`, `Content passed after correction`, `Content blocked` or `Escalate before delivery`.
+- **Highest severity:** `none`, `minor`, `major` or `critical`.
+
+Any `major` or `critical` finding resets the clean-run count under the case operating method, including when the content is later corrected and passed.
+
 ## Review record
 
 ```text
@@ -131,6 +138,7 @@ Approved content version:
 Founder content approval date and time:
 Review date and time:
 QA result:
+Highest severity:
 Calculation and total checks:
 Service-status checks:
 Critical defects:

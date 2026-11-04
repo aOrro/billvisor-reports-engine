@@ -238,6 +238,50 @@ The engine currently works as described below. Confirm each one, or say what sho
 9. **Economy 7 / multi-rate:** keep it outside the ordinary calculator. Stop the affected Energy unit safely and do not build the specialist route in this phase.
 10. **Review:** `REPORT_OUTPUT_QA.md` is now included as governing reference. The engine may enforce that a required human Review result exists, but must not pretend to automate the Review judgement.
 
+## Founder answers recorded — renderer contract (4 November 2026)
+
+Items A1–A8 and B9–B10 are now resolved by the copied governing authority
+`docs/governing/PHASE_1_REPORT_RENDERER_CONTRACT.md`. Implement against that file; do not make
+additional product or wording decisions in the renderer.
+
+1. **Action pages:** remove `Time required` and `Difficulty`. Render `Effort: Low`, `Effort: Moderate` or
+   `Effort: High`, supplied and approved by the founder for the particular action. Do not derive it from
+   score or action type and do not promise a duration.
+2. **Energy page:** show both `Monthly payment` and `Estimated annual energy cost`. Include the exact sentence:
+   `This uses your current tariff and estimated energy use. Your monthly payments may vary through the year.`
+   The annual figure is the tariff calculation; the monthly payment is a sense-check.
+3. **Broadband/Mobile figures:** immediately below the current-service block, show a compact row for
+   `You pay each year`, `Similar services cost`, and `Potential saving` only when founder-approved for display.
+   Retain the qualitative What this means section.
+4. **Narrative locations:** provider-quality note, service limitation and Energy estimate explanation belong in
+   What this means as short grouped paragraphs. Put `Supporting source details are available on request.` once
+   on the final action-plan page.
+5. **Remove/define remaining fields:** remove Report confidence. Market position is the score band
+   Good/Medium/Poor, or `—` if no score. Founder-supplied action labels remain literal; Stay put displays
+   `No action needed`. Totals are: annual spend = current annual spend across analysed service pages; potential
+   savings = founder-selected displayed positive savings; services reviewed = pages; priority actions = actions
+   other than Stay put. Order actions by founder priority, then displayed saving descending for a tie.
+6. **Labels:** replace old sample labels with exactly: Broadband: Provider, Download speed, Monthly cost,
+   Contract ends. Mobile: Provider, Data allowance, Plan type, Monthly cost, Contract ends. Energy: Supplier,
+   Services, Tariff, Monthly payment, Tariff ends.
+7. **Confirm information:** this page uses founder-approved `What we could confirm` and `What we still need`
+   lists, printed in the approval pack. It is for Confirm information only, not ordinary Analysed with limitations.
+8. **Template defects:** correct the hard-coded 74 score to Medium styling and use local
+   `templates/report/billvisor-house.png`, never an absolute workspace image path.
+9. **Energy QA:** QA now explicitly checks calculated tariff annual cost for Energy and the distinct monthly
+   payment sense-check role.
+10. **Review record:** change the engine schema/CLI from a one-field `pass/minor/major/critical` result to
+    `outcome` (`Content passed`, `Content passed after correction`, `Content blocked`, `Escalate before delivery`)
+    plus `highest_severity` (`none`, `minor`, `major`, `critical`). Only the first two outcomes build; major or
+    critical resets the clean-run count.
+
+## Implementation acceptance for the renderer
+
+Before requesting founder visual review, add synthetic tests proving that the renderer uses only approved
+`report_data`, blocks stale gates, implements the above conditional fields/totals/action ordering, has no
+customer-visible `Estimated` score label, and contains no broken workspace asset path. Use wholly synthetic
+fixtures only.
+
 ## Review of 6c5a595: template and QA conflicts
 
 Checked on 4 November 2026.
