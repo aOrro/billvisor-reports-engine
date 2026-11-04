@@ -39,13 +39,27 @@ class CaseTest(unittest.TestCase):
         fn(case)
         workflow.save_case(self.cd, rid, case)
 
+    def assert_no_internal_flags(self, data):
+        """report_data must not carry the qualified-comparison flag anywhere."""
+        def walk(node):
+            if isinstance(node, dict):
+                self.assertNotIn("estimated", node)
+                for v in node.values():
+                    walk(v)
+            elif isinstance(node, list):
+                for v in node:
+                    walk(v)
+        walk(data)
+
     def approve_and_build(self, rid, review_result="pass"):
         workflow.run_calc(self.cd, rid)
         workflow.run_approve(self.cd, rid, confirm=True)
         if workflow.review_status(self.cd, rid)["required"]:
             workflow.review_record(self.cd, rid, review_result, None)
         path = workflow.run_build(self.cd, rid)
-        return jsonio.load(path)
+        data = jsonio.load(path)
+        self.assert_no_internal_flags(data)
+        return data
 
     def page(self, data, uid):
         return next(p for p in data["service_pages"] if p["unit_id"] == uid)
@@ -60,7 +74,7 @@ class RequiredCases(CaseTest):
         self.assertEqual(p["comparison_annual_gbp"], 288)
         self.assertEqual(p["comparison_text"], "Similar services cost about £288 a year.")
         self.assertEqual(p["potential_saving_gbp"], 180)
-        self.assertEqual(p["score"], {"value": 39, "band": "Poor", "colour": "red", "estimated": False})
+        self.assertEqual(p["score"], {"value": 39, "band": "Poor", "colour": "red"})
         self.assertEqual(data["overall"]["value"], 39)
         self.assertEqual(data["gate"]["type"], "review")
         self.assertIn("primary_look_at_changing_now", data["gate"]["reasons"])
@@ -105,7 +119,7 @@ class RequiredCases(CaseTest):
         p = self.page(data, "energy_combined")
         self.assertEqual(p["coverage_status"], "Analysed")
         self.assertEqual(p["estimate_note"], "Your consumption was estimated from households with similar characteristics.")
-        self.assertEqual(p["score"], {"value": 77, "band": "Good", "colour": "green", "estimated": False})
+        self.assertEqual(p["score"], {"value": 77, "band": "Good", "colour": "green"})
         self.assertEqual(p["current_annual_spend_gbp"], 1167)
         self.assertIsNone(p["limitation"])
         # overall: both services at weight 1.0
@@ -130,7 +144,8 @@ class RequiredCases(CaseTest):
         data = self.approve_and_build(rid)
         p = self.page(data, "energy_combined")
         self.assertEqual(p["coverage_status"], "Analysed with limitations")
-        self.assertTrue(p["score"]["estimated"])
+        self.assertNotIn("estimated", p["score"])
+        self.assertTrue(self.load(rid)["analysis_units"][2]["calculation_output"]["score"]["estimated"])
         self.assertIn("Direct Debit on the same tariff would cost an estimated £60 less a year", p["findings"][0]["text"])
 
     def test_3c_route_mismatch_rejected(self):
@@ -267,7 +282,7 @@ class RequiredCases(CaseTest):
         p = self.page(data, "broadband")
         self.assertEqual(p["coverage_status"], "Analysed with limitations")
         self.assertEqual(p["limitation"], "This score is based on price comparison only.")
-        self.assertFalse(p["score"]["estimated"])
+        self.assertNotIn("estimated", p["score"])
 
 
 class ReviewLedger(unittest.TestCase):

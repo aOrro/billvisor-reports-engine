@@ -37,7 +37,7 @@ Page numbers are owned by the template, which knows its fixed pages. Service pag
 | `current_annual_spend_basis` | `monthly_payment_x12` or `estimated_annual_cost`, so the template can choose "what you pay each year" or "estimated annual cost" |
 | `comparison_annual_gbp`, `comparison_text` | Broadband/mobile only: "Similar services cost about £X a year." Energy shows no market comparison |
 | `potential_saving_gbp` | A positive whole-pound saving only when the founder chose to show it. Never 0. Do not prefix it with "about" |
-| `score` | `{value, band, colour, estimated}` or null. `estimated` is an internal qualified-comparison flag; do not label the customer-facing score or gauge “Estimated”. Use the approved limitation or estimate narrative instead. |
+| `score` | `{value, band, colour}` or null. The qualified-comparison flag is deliberately not included: it stays in `calculation_output` and `trace.txt`. Never label the score or gauge “Estimated”; the approved `limitation` or `estimate_note` explains any estimate. |
 | `provider_note` | The fixed provider-quality sentence when the band dropped, otherwise null |
 | `action_type` | Internal type: do not print it as a label. Customer wording is `next_step` |
 | `effort` | Internal (Low/Moderate/High), not a time promise |

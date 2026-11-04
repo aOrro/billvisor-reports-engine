@@ -190,8 +190,9 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
 
         score_block = None
         if sc:
-            score_block = {"value": sc["display"], "band": sc["band"], "colour": score.COLOUR[sc["band"]],
-                           "estimated": bool(sc.get("estimated"))}
+            # The qualified-comparison flag stays in calculation_output/trace only: it is never a
+            # customer-facing label (BILLS_HEALTH_SCORE_METHOD §2.1), so the renderer never receives it.
+            score_block = {"value": sc["display"], "band": sc["band"], "colour": score.COLOUR[sc["band"]]}
             final_scores[uid] = {"exact": sc["exact"], "display": sc["display"], "band": sc["band"],
                                  "floor_applied": bool(sc.get("floor_applied"))}
         overall_entries.append({"unit_id": uid, "status": status, "exact": sc["exact"] if sc else None,

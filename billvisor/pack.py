@@ -70,7 +70,7 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
         sc = out.get("score")
         if sc:
             L.append(f"  - score exact {sc['exact']} -> **{sc['display']} {sc['band']}**"
-                     f"{' (Estimated)' if sc.get('estimated') else ''}; materiality {sc['materiality']}"
+                     f"{' (qualified comparison — internal flag)' if sc.get('estimated') else ''}; materiality {sc['materiality']}"
                      f"{'; capped' if sc.get('cap_applied') is not None else ''}; provider note "
                      f"{'triggered' if sc['provider_note_triggered'] else 'not triggered'}")
             if floor_eligible(sc):

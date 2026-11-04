@@ -49,7 +49,7 @@ The founder approved the following resolutions:
 
 ## 3. Resolve the score-label wording conflict
 
-**Current state:** the engine writes `score.estimated: true`, and the report-data contract says a true value should display an “Estimated” score label. The latest founder direction was not to show the word “estimated” beside a score; estimates/limitations should be explained in the relevant service-page narrative instead.
+**Current state (done 4 November 2026):** the qualified-comparison flag is kept only in `calculation_output` and `trace.txt`. `report_data` no longer carries it, so the renderer cannot show it, and the workflow tests check that no built report contains it. The governing documents now say not to show “Estimated” beside a score; the service-page narrative explains estimates and limitations instead.
 
 **Required change:** preserve the internal flag for traceability, but do not make the score label customer-facing by default. Surface the relevant limitation or energy-consumption estimate in the approved explanation/estimate-note location.
 
