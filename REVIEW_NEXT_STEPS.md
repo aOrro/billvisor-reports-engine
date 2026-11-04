@@ -152,3 +152,19 @@ The bedroom fallback is still described as "Analysed with limitations" in two pl
 - the worked example at `LIVE_CASE_CALCULATOR_SPEC.md:258-265`.
 
 These are not new. Founder ruling 1 in `docs/governing/README.md` overrides them: Analysed, weight 1.0. The source documents should be corrected the next time they are refreshed.
+
+## Open follow-ups from the review of 584bece
+
+Checked on 4 November 2026. Fix items 1 and 2 in the `context-files/` source documents first, then recopy them into `docs/governing/` unchanged.
+
+1. **Missed worked example.** `BILLS_HEALTH_SCORE_METHOD.md:196` still says "the price-only result is **75 — Good, Estimated**". The mobile example on line 195 was updated but this energy example was not. Reword it to match the new rule: no customer-facing "Estimated" label, and the qualified-comparison status kept internally.
+2. **Old term in the trace list.** `BILLS_HEALTH_SCORE_METHOD.md:210` still says "whether the score is Estimated and the exact customer-facing limitation". This is internal only, but it should use the new term, for example "whether the score is qualified (internal flag) and the exact customer-facing limitation".
+3. **Source date missing.** `docs/governing/README.md` requires the commit message for a refreshed copy to record the source date. Commit 584bece has no message body. In the fix-up commit, give the date the `context-files/` sources were changed, and confirm the sources themselves carry the decision, not only the copies here.
+
+**Engine side (after items 1–3 land).** These still describe the old rule and will be updated on this branch:
+
+- `docs/REPORT_DATA_CONTRACT.md:40` tells the renderer to label the score "Estimated".
+- `billvisor/pack.py:92` tells the founder the score will be "labelled Estimated".
+- `README.md:56` and `:84` say "Estimated score".
+
+The internal flag stays; it is not shown to customers.
