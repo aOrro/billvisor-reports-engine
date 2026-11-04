@@ -6,6 +6,14 @@ The engine is a sound calculation and approval core. Its test suite currently pa
 
 This document records the smallest next implementation phase. It is not a request to redesign the scoring, report, or customer journey.
 
+## Founder decisions recorded — 4 November 2026
+
+The founder approved the following resolutions:
+
+1. **HTML:** the engine will generate the completed approved-report HTML after all gates pass. It will not generate PDFs or delivery emails. Vendor the currently approved report template and assets from `/Users/anton/billvisor/design/report/` into a clearly labelled repository template folder before wiring it.
+2. **Current-service section:** include the household's own submitted current-service details in renderer-safe report data. Every displayed field must appear in the founder approval pack. Mobile extras must be founder-approved wording, never an automatic raw copy.
+3. **Score labels:** preserve a qualified/estimated-comparison indicator internally, but do not show the word “Estimated” beside a customer-facing score or gauge. Explain the material estimate or limitation in the relevant service-page narrative.
+
 ## 1. Render the approved HTML report
 
 **Current state:** `build` writes `report_data.v<N>.json`; the README explicitly says HTML generation is out of scope.
@@ -85,31 +93,24 @@ Checked on 4 November 2026 against every document in `docs/governing/`. Line num
 
 | Item | Result |
 |---|---|
-| 1. Render HTML | Matches the governing documents. Conflicts with this repo's own scope ruling. |
-| 2. Current-service data | Possible conflict with MEMORY.md. Founder confirmation needed. |
-| 3. Score label | **Direct contradiction.** Do not implement until resolved. |
+| 1. Render HTML | Founder approved; update this repo's scope ruling as part of implementation. |
+| 2. Current-service data | Founder approved; clarified in MEMORY.md. |
+| 3. Score label | Founder approved; source documents and their governing copies were updated. |
 | 4. Regression fixtures | No contradiction. |
 | 5. End-to-end check | No contradiction. |
 
-### Item 3 contradicts four governing statements
+### Item 3 — resolved
 
-Item 3 says the latest founder direction is not to show "Estimated" beside a score. No governing document records that direction. Each of these says the opposite:
+The founder confirmed that a qualified/estimated-comparison flag remains internal and is not a customer-facing score label. The relevant source documents and their governing copies now record this decision. The old wording below identified the issue before the decision was recorded:
 
 - `BILLS_HEALTH_SCORE_METHOD.md:46`: "the score must be labelled **Estimated**".
 - `BILLS_HEALTH_SCORE_METHOD.md:195-196`: the validation examples show "45 — Medium, Estimated" and "75 — Good, Estimated".
 - `LIVE_CASE_CALCULATOR_SPEC.md:102` and `:207`: "a clearly labelled **Estimated score**". The worked example at `:264` shows "75 Good Estimated".
 - `MEMORY.md:36`: "may produce a clearly labelled **Estimated score**".
 
-Item 3 also conflicts with this file's own "Out of scope" list, which excludes "Altering Phase 1 scoring policy". The Estimated label is part of that policy.
+The internal flag is separate from the bedroom-fallback energy explanation. The energy customer narrative still explains estimated usage while the coverage remains Analysed where the agreed minimum information was supplied.
 
-`docs/governing/README.md` requires the governing copy to be updated before the implementation changes. Item 3 can therefore go ahead in only one of two ways:
-
-1. The founder records the decision. The four places above are updated in the source documents and recopied here, and the commit message records the source date. Then the engine and `docs/REPORT_DATA_CONTRACT.md:40` are changed.
-2. Item 3 is dropped, and the label stays as the governing documents require.
-
-The Estimated label is separate from the bedroom-fallback energy explanation. `BILLS_HEALTH_SCORE_METHOD.md:54` puts the estimated-usage explanation in the customer narrative, without an Estimated label and with the status left as Analysed. The engine already does this through `estimate_note`, so item 3 does not need to change it.
-
-### Item 1 conflicts with this repo's scope ruling, not with the governing documents
+### Item 1 — resolved
 
 The governing documents already require HTML generation. `PHASE_1_CASE_OPERATING_METHOD.md` §4 (`:143-152`) lists:
 
@@ -125,25 +126,15 @@ The conflict is with this repo's own records:
 - `docs/governing/README.md:35`, ruling 4: "HTML rendering [is] out of scope for this build."
 - `README.md:6`: the engine "does **not** … generate HTML".
 
-When item 1 is approved, update both in the same change.
+The founder approved HTML generation, but not PDF or delivery-email generation. Update both scope statements in the same implementation change.
 
-Item 1 also leaves two questions open:
-
-- **Design source.** `MEMORY.md:56` names `/Users/anton/billvisor/design/report/` as the approved report design. That folder is not in this repo, so item 1 cannot be built or checked until the design is added here or a path to it is agreed.
-- **Delivery email.** `PHASE_1_CASE_OPERATING_METHOD.md:152` asks for page numbering, case reference, report version and delivery email to be consistent. Delivery email is out of scope for this engine. Say whether the renderer covers only the first three.
+The design source is `/Users/anton/billvisor/design/report/`; vendor the approved template/assets into the repository as part of the implementation. The renderer covers report page numbering, case reference and report version; delivery email remains outside this engine.
 
 Item 1's rule that the renderer reads only `report_data` is not a conflict with `:147`, which says "from the approved case JSON". `report_data` is built only from the approved and fingerprinted case JSON.
 
-### Item 2 may conflict with MEMORY.md
+### Item 2 — resolved
 
-`MEMORY.md:35` says: "The customer sees only current annual spending, what similar services cost, an estimated positive saving where useful, a short conclusion and one next action."
-
-Item 2 adds a "Your current service" section to each page: provider, speed or allowance, extras, monthly cost and contract or tariff end. No governing document describes that section. It is said to exist only in the approved design, which is not in this repo. The founder should confirm one of two options:
-
-- the design's current-service section is approved, and `MEMORY.md:35` should be read as limiting comparison data only; or
-- `MEMORY.md:35` is amended.
-
-If the section is approved, two governing rules apply to it:
+The founder approved the design's current-service section and MEMORY.md now states its boundary. Two governing rules apply to it:
 
 - **Founder approval.** `PHASE_1_CASE_OPERATING_METHOD.md:118` and `:124` require every customer-facing field to appear in the approval package. Any change to a field invalidates the approval. So `current_service` must appear in the approval pack and be covered by the approval fingerprints.
 - **Mobile extras.** `LIVE_CASE_CALCULATOR_SPEC.md:59` defines `handset_or_important_extras` as the customer's own description. It should reach the report only as founder-approved wording that has passed the leakage check, not as a direct copy.

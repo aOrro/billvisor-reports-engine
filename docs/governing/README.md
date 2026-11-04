@@ -28,8 +28,9 @@ commit message before changing implementation.
    LIVE_CASE_CALCULATOR_SPEC §4. The "Analysed with limitations" wording in PHASE_1_OFFER_DATA_METHOD and the
    worked example in LIVE_CASE_CALCULATOR_SPEC §6 are treated as out of date.
 2. **Energy price-only is not a limitation.** A tariff-fit score stays Analysed. The like-for-like
-   payment-method score is Estimated, so it is Analysed with limitations.
+   payment-method score is qualified internally, so it is Analysed with limitations but its customer-facing
+   score is not labelled “Estimated”.
 3. **Stopped requested service.** Building is blocked unless the founder records
    `proceed_as: confirm_information`. That is allowed only for customer-information gaps and gives Analysed with
    limitations, no score and the action Confirm information.
-4. **Scope.** The engine produces report data. The delivery email and HTML rendering are out of scope for this build.
+4. **Scope.** The engine produces approved report data and, once the approved visual template is integrated, the completed local report HTML. Delivery email and PDF export remain out of scope.

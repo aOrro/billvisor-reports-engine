@@ -3,7 +3,7 @@
 ## Status and boundary
 
 - **Owner:** Operations.
-- **Status:** Implemented for the ordinary-case preparation path and updated on 17 August 2026 for the revised score curve, materiality caps and narrow Estimated-score route.
+- **Status:** Implemented for the ordinary-case preparation path and updated on 4 November 2026 for the revised score curve, materiality caps and qualified-score route.
 - **Purpose:** define the smallest deterministic calculation layer for ordinary broadband, mobile and Great Britain energy cases under D-018.
 - **Authorities:** CEO `MEMORY.md`, D-018, `BILLS_HEALTH_SCORE_METHOD.md` and Evidence's `PHASE_1_OFFER_DATA_METHOD.md`.
 - **Not in scope:** a database, user interface, report generator, recommendation algorithm, source methodology or provider-scoring method.
@@ -99,7 +99,7 @@ Each extracted offer uses only:
 | `source_ref` and `captured_at` | R | Internal trace only. |
 | `comparison_disposition` | R | `include` or `exclude_plainly_not_comparable`. |
 | `exclusion_reason` | C when excluded | Short factual reason. |
-| `comparison_sufficient_for_score` | C | Set `false` only when the captured results support a reasonable qualified comparison but a customer-stated material feature was not matched. The case remains **Analysed with limitations**, retains the cost comparison and saving candidate, and may receive a clearly labelled **Estimated score** under the approved method. |
+| `comparison_sufficient_for_score` | C | Set `false` only when the captured results support a reasonable qualified comparison but a customer-stated material feature was not matched. The case remains **Analysed with limitations**, retains the cost comparison and saving candidate, and may receive a numeric score under the approved method. Retain the qualified-comparison flag internally; do not label the customer-facing score “Estimated”. |
 
 When `compulsory_one_off` is `not_shown`, its observed-cost contribution is £0 and the trace must say **not shown in capture**, not **no charge**. Any compulsory charge shown must be included. Rewards may be captured in an optional note but never enter the calculation. The calculator validates the recorded disposition; it does not create a new comparability rule. If the package cannot safely be classed under the approved “broadly similar/plainly not comparable” rule, stop with `COMPARABILITY_RULE_AMBIGUOUS` and escalate to Evidence.
 
@@ -119,7 +119,7 @@ When `compulsory_one_off` is `not_shown`, its observed-cost contribution is £0 
 | `score_comparison_observation_id` | C | Founder-approved only for a supportable like-for-like payment-method comparison. The selected observation must match the current model on provider/basis, region, fuels, meter type, tariff type, consumption and comparison group, differing only in payment method. |
 | `tariff_fit_score_observation_id` | C | Founder-approved only for a current-tariff versus relevant-accessible-tariff score. It must match the current model on provider, geography, fuels, meter type, payment method and selected consumption input; tariff type may differ. It is not a market-comparison route. |
 
-The calculator calculates every usable observation with the same selected household consumption. It may calculate differences between the current-cost model and each observation. A founder-approved `score_comparison_observation_id` may select only a validated like-for-like payment-method observation for the narrow Estimated Energy score. A founder-approved `tariff_fit_score_observation_id` may select a relevant accessible tariff with the same provider, geography, fuels, meter type and payment basis, even where the tariff type differs; it creates a price-only tariff-fit score, not a market comparison or named-offer recommendation. Separately, an electricity-only Economy 7 case may use actual peak/off-peak readings, its current Economy 7 rates and a regional Direct Debit single-rate reference across exactly the same measured billing-day sample to calculate an Estimated tariff-fit score. Other observations remain saving candidates and cannot be selected automatically as “the market.”
+The calculator calculates every usable observation with the same selected household consumption. It may calculate differences between the current-cost model and each observation. A founder-approved `score_comparison_observation_id` may select only a validated like-for-like payment-method observation for the narrow qualified Energy score. A founder-approved `tariff_fit_score_observation_id` may select a relevant accessible tariff with the same provider, geography, fuels, meter type and payment basis, even where the tariff type differs; it creates a price-only tariff-fit score, not a market comparison or named-offer recommendation. Separately, an electricity-only Economy 7 case may use actual peak/off-peak readings, its current Economy 7 rates and a regional Direct Debit single-rate reference across exactly the same measured billing-day sample to calculate a qualified tariff-fit score. Other observations remain saving candidates and cannot be selected automatically as “the market.”
 
 ## 3. Provider-quality reference
 
@@ -204,7 +204,7 @@ When an exact current monthly price/cost and approved comparison exist, apply `B
 - half-up displayed rounding, band and provider-note trigger;
 - overall annual-spend and status-weighted average across every service with a numeric score: current annual spend × 1.0 for Analysed, or × 0.8 for Analysed with limitations.
 
-No reasonable price comparison means no numeric score, even if provider quality exists. A qualified comparison marked `comparison_sufficient_for_score: false` produces an **Estimated score**, remains **Analysed with limitations** and must carry the material limitation on the service page. The narrow Energy payment-method score is also Estimated and price-only. Every scored Analysed-with-limitations service contributes to the overall score at weight 0.8. Contract status informs the recommendation but does not directly enter the score; saving size affects only the approved materiality caps.
+No reasonable price comparison means no numeric score, even if provider quality exists. A qualified comparison marked `comparison_sufficient_for_score: false` produces a numeric score, remains **Analysed with limitations** and must carry the material limitation on the service page. The narrow Energy payment-method score is also qualified and price-only. Keep that status internally; do not label the customer-facing score or gauge “Estimated”. Every scored Analysed-with-limitations service contributes to the overall score at weight 0.8. Contract status informs the recommendation but does not directly enter the score; saving size affects only the approved materiality caps.
 
 ### Smallest reproducible trace
 
@@ -249,7 +249,7 @@ Evidence is called only for a new provider assessment, missing/ambiguous source 
 - Two bedrooms; no specialist setup; no actual or supplier-estimated annual kWh.
 - Approximate payments supplied: £1,140–£1,190 a year, used only as a sense-check.
 - Consumption selected deterministically: 1,600 kWh electricity and 6,000 kWh gas; bedroom fallback.
-- Two same-basis regional observations contain the required rate and standing-charge fields: standard-credit current model and Direct Debit comparison. The Direct Debit observation is explicitly selected for the narrow like-for-like Estimated-score route.
+- Two same-basis regional observations contain the required rate and standing-charge fields: standard-credit current model and Direct Debit comparison. The Direct Debit observation is explicitly selected for the narrow like-for-like qualified-score route.
 
 ### Output
 
@@ -261,7 +261,7 @@ Evidence is called only for a new provider assessment, missing/ambiguous source 
 | Direct Debit comparison | £1,173.3620 |
 | Like-for-like payment-method difference | £108.9110 |
 | Energy score comparison | £1,173.3620 |
-| Energy score | 75 Good Estimated (exact 74.9038…) |
+| Energy score | 75 Good (exact 74.9038…; qualified-comparison status retained internally) |
 | Overall-score contribution | Included at weight 0.8 |
 
 The calculator validates and uses the explicitly selected like-for-like payment-method comparison. It does not choose Direct Debit as the recommendation or select a broader market alternative. The founder still approves customer content separately. The customer limitation is: “Your consumption was estimated from households with similar characteristics.”

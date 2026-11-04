@@ -41,17 +41,17 @@ This produces:
 
 The curve is deliberately non-linear and does not turn a service into 0 merely because its price is twice the comparison. Do not calculate a price score when the current price or approved comparison value is missing, zero or invalid.
 
-### 2.1 Estimated comparison
+### 2.1 Qualified comparison
 
-A numeric **Estimated score** may be issued when a reasonable broadband/mobile comparison exists but a material input is estimated or not fully matched. The service must be **Analysed with limitations**, the score must be labelled **Estimated**, and the service page must state the single material limitation in plain English. Retain the full basis internally.
+A numeric score may be issued when a reasonable broadband/mobile comparison exists but a material input is estimated or not fully matched. The service must be **Analysed with limitations** and the service page must state the single material limitation in plain English. Retain the qualified-comparison flag and full basis internally. Do **not** label the customer-facing score or gauge “Estimated”; explain the relevant estimate or limitation in the service-page narrative instead.
 
 For energy, the approved scoring cases are:
 
-- When a supportable like-for-like payment-method comparison uses the same regional rate basis, consumption, fuels, meter type and tariff type, its annual cost may be the price comparison for an Estimated price-only score.
-- For an electricity-only Economy 7 household with actual peak and off-peak readings, compare the current Economy 7 rates with the regional Direct Debit single-rate reference using the exact same measured usage and billing-day sample. This produces an **Estimated tariff-fit score**, not a best-deal or whole-market score. The score answers whether the Economy 7 rate structure appears to suit the observed usage pattern. Do not show an alternative-provider saving from this comparison.
+- When a supportable like-for-like payment-method comparison uses the same regional rate basis, consumption, fuels, meter type and tariff type, its annual cost may be the price comparison for a qualified price-only score. State the material limitation in the customer narrative; do not label the score itself “Estimated”.
+- For an electricity-only Economy 7 household with actual peak and off-peak readings, compare the current Economy 7 rates with the regional Direct Debit single-rate reference using the exact same measured usage and billing-day sample. This produces a qualified tariff-fit score, not a best-deal or whole-market score. The score answers whether the Economy 7 rate structure appears to suit the observed usage pattern. Do not show an alternative-provider saving from this comparison.
 - For an ordinary Energy case, compare the current tariff with a relevant accessible tariff using the same selected household-consumption input, geography, fuels, meter type and payment basis. It may be a different tariff type, such as flexible versus fixed, when the score is explicitly a **tariff-fit score**. This is price-only: do not add a provider-quality component, represent it as a market comparison or show it as a named-offer recommendation.
 
-The Economy 7 calculation requires current peak rate, off-peak rate and standing charge; the regional single-rate unit rate and standing charge; matched Direct Debit payment basis; actual peak/off-peak kWh and associated billing days; source references; and capture date. It remains Estimated unless the actual sample covers the prior 12 months. For an ordinary tariff-fit score using the approved bedroom fallback, retain the exact rates, consumption input, tariff costs and comparison internally. The customer explanation must say that the tariff view uses estimated energy use; this does not change an **Analysed** coverage status when the customer supplied the agreed minimum data. These rules do not approve the cheapest accessible tariff, an arbitrary alternative or a whole-market value as the energy comparison.
+The Economy 7 calculation requires current peak rate, off-peak rate and standing charge; the regional single-rate unit rate and standing charge; matched Direct Debit payment basis; actual peak/off-peak kWh and associated billing days; source references; and capture date. Unless the actual sample covers the prior 12 months, the customer narrative must state the material sample limitation; the score itself remains unlabelled. For an ordinary tariff-fit score using the approved bedroom fallback, retain the exact rates, consumption input, tariff costs and comparison internally. The customer explanation must say that the tariff view uses estimated energy use; this does not change an **Analysed** coverage status when the customer supplied the agreed minimum data. These rules do not approve the cheapest accessible tariff, an arbitrary alternative or a whole-market value as the energy comparison.
 
 ### 2.2 Material-opportunity guardrail
 
@@ -192,7 +192,7 @@ The report must state how many services contributed to the overall score. It mus
 Founder-approved calibration dry run on 17 August 2026:
 
 - Broadband: £39 current monthly price, £23.85 comparison, £181.80 annual saving and 38.8% saving share. The high material-opportunity guardrail caps the service score at **39 — Poor**.
-- Mobile: £12 current monthly price, £6 core-plan comparison and £72 annual saving. The comparison did not match the supplied EU-calling benefit, so the result is **45 — Medium, Estimated**.
+- Mobile: £12 current monthly price, £6 core-plan comparison and £72 annual saving. The comparison did not match the supplied EU-calling benefit, so the result is **45 — Medium** under **Analysed with limitations**; the service-page narrative states that material limitation while the qualified-comparison flag remains internal.
 - Energy: £1,282.27 estimated current annual cost and £1,173.36 like-for-like Direct Debit estimate, a saving of about 8.5%. No materiality cap applies; the price-only result is **75 — Good, Estimated**.
 - The individual service results were approved as a Phase 1 calibration decision. This historical overall score used the superseded equal-service weighting and is retained only as a record of that dry run; recalculate it before using it as a current validation case.
 
