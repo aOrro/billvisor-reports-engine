@@ -30,7 +30,12 @@ def _default(obj: Any) -> Any:
     if isinstance(obj, Decimal):
         if not obj.is_finite():
             raise ValueError(f"non-finite number cannot be stored: {obj}")
-        return f"{_MARK}{obj}{_MARK}"
+        # Always write a decimal point: a whole-number Decimal written as "600" would be read back as
+        # the int 600, losing its Decimal type (json only maps numbers with a point to parse_float).
+        text = format(obj, "f")
+        if "." not in text:
+            text += ".0"
+        return f"{_MARK}{text}{_MARK}"
     raise TypeError(f"not JSON serialisable: {type(obj).__name__}")
 
 

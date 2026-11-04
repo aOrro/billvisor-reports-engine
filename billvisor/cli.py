@@ -72,7 +72,8 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "review-record":
             print(jsonio.dumps(workflow.review_record(cd, rid, OUTCOME_FLAGS[args.outcome], args.severity, args.note)))
         elif args.cmd == "build":
-            print(f"report data: {workflow.run_build(cd, rid)}")
+            out = workflow.run_build(cd, rid)
+            print(f"report data: {out}\nreport HTML: {out.with_name(out.name.replace('report_data', 'report').replace('.json', '.html'))}")
     except GateError as e:
         print(f"BLOCKED: {e}", file=sys.stderr)
         return 2

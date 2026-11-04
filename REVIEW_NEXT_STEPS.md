@@ -443,3 +443,56 @@ The gaps below are where the contract, the approved template and the engine's da
    - It is the company-wide decision register (524 lines). It includes mailbox security set-up, pilot data handling and other matters that do not govern this engine.
    - `MEMORY.md:62` links to it, which is presumably why it was copied.
    - Recommendation: remove it from the repo, or list it in the README as context only. Either way, confirm the GitHub repo is private.
+
+## Implementation: renderer, data additions and regression cases (4 November 2026)
+
+Items 1, 2 and 4 are built. Item 5, the founder's visual check, is next.
+
+### What was built
+
+- **Renderer (`billvisor/render.py`).**
+  - `build` now writes `report_data.v<N>.json` and `report.v<N>.html`.
+  - Rendering happens only after every gate passes, and only from the report data being written.
+  - If anything cannot be rendered, nothing is written.
+  - The HTML is one self-contained file with the logo and house image embedded.
+  - The renderer reads its CSS and icons from `templates/report/` when it runs, so the approved design is not copied into code.
+  - Each page type's CSS is kept separate so that pages with conflicting rules can share one document.
+- **Data additions.**
+  - Optional numeric `approximate_monthly_payment_gbp`, displayed only and checked as a positive number.
+  - Optional `report.priority_reason`.
+  - Confirm-information `confirmed_items` and `still_needed`. These are founder-approved, pass through the leakage check, require at least one `still_needed` item, and are refused on other actions.
+  - `report_data` is now contract v1.2.
+- **Regression cases (item 4).**
+  - `tests/regression/case-a-mixed`: broadband action, energy bedroom estimate, mobile not requested.
+  - `tests/regression/case-b-good-floor`: good position, small mobile saving, floor approved.
+  - Both are wholly synthetic. Their expected values were worked out by hand; `NOTES.md` in each folder shows the arithmetic.
+  - The regression suite no longer skips.
+- **Renderer acceptance tests (`tests/test_render.py`)** cover the list in contract §7: scores, bands, arcs and colours; 74 shown as Medium; combined Energy shown once; no page for Not analysed; current-service fields and the figure row; energy payment and cost; totals and action order; Confirm-information lists; no "Estimated" score label; no removed fields, internal values or workspace paths; HTML escaping; and that a stale approval writes no HTML.
+
+### Engine bugs found and fixed
+
+1. **Leakage check blocked "review" as well as "reviews".** It rejected ordinary approved wording such as "Review your broadband renewal price" and the action "Review later". It now blocks only the plural "reviews" (the evidence wording that MEMORY and QA §4 prohibit).
+2. **Whole-number Decimals came back as integers.** When the case file was saved, a computed Decimal such as `600` was written as `600` and read back as an integer, which crashed approval. Earlier fixtures used prices like `39.0`, so this never showed. Decimals now always keep a decimal point when written.
+
+### Renderer choices for the founder's visual check
+
+None of these changes a figure. Confirm each one, or say what should change.
+
+1. **Findings** ("You are currently out of contract", for example) appear under **What this means**, after the limitation, estimate note, energy sentence and provider note. Contract §8 does not place them.
+2. **Action card accent** on page 3: green for Stay put, otherwise the service's score band (red Poor, amber Medium, green Good), and neutral when there is no score. The contract removed the priority labels but not the card colours.
+3. **"Estimated" beside the potential saving** is kept, as in the approved template. QA §3 requires a displayed saving to be identified as an estimate. It is never beside a score.
+4. **Cover top-right** shows "Bills Health Report" and the customer's first name, replacing the sample's "Fictional example".
+5. **Totals label** is "Annual spend" (contract §3) instead of the template's "Annualised spend". Energy's figure is a calculated cost, not an annualised payment.
+6. **Overview row for a service not requested** shows "Not analysed" under Market position, as in the approved template. Contract §2 says "—" where there is no score. "—" is used for a service that has a page but no score.
+7. **Sample-only boxes are removed.** No content field maps to them:
+   - the combined-energy "One combined analysis" note;
+   - the Confirm page "No conclusion yet" box;
+   - page 7's "Staying put is still a useful outcome".
+8. **New figure row** under the current-service details. Its style follows the existing fact and saving styles, and it appears on screen and in print.
+9. **"No end date known"** is used for both `no_end_date` and `unknown` (contract §8). On a variable tariff it sits next to the finding "Your current tariff has no fixed end date", which reads inconsistently. "No fixed end date" for `no_end_date` would fix this.
+10. **Footer** reads `<report id> · Version <n> · Page <i> of <total>`, as `PHASE_1_CASE_OPERATING_METHOD.md` §4 requires.
+
+### Still open
+
+- **Report with no scored service.** If every requested service is Confirm information or otherwise unscored, there is no overall Bills Health Score. The contract has no cover for that, so `build` refuses. A founder treatment is needed: for example, the cover shows no gauge and a fixed sentence.
+- **Item 5.** The founder renders a synthetic case and compares it with the approved design. To try it, run the two regression cases or the test fixtures through `build` in a scratch cases folder.

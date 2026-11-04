@@ -16,7 +16,7 @@ import os
 import re
 from pathlib import Path
 
-from . import ENGINE_VERSION, calc, jsonio, provider, report_data, review
+from . import ENGINE_VERSION, calc, jsonio, provider, render, report_data, review
 from .errors import GateError
 from .pack import render_pack
 
@@ -301,11 +301,20 @@ def run_build(cases_dir: Path, report_id: str) -> Path:
         "gate": gate,
         "engine_version": ENGINE_VERSION,
     }
+    # The renderer sees exactly what report_data.v<N>.json will contain (a JSON round trip), never the case.
+    # Render before writing anything, so a render refusal leaves no half-built output.
+    try:
+        page = render.render_report(jsonio.loads(jsonio.dumps(data)))
+    except render.RenderError as exc:
+        raise GateError(f"HTML report cannot be rendered: {exc}") from None
     folder = case_path(cases_dir, report_id).parent
     out = folder / f"report_data.v{appr['report_version']}.json"
+    html_out = folder / f"report.v{appr['report_version']}.html"
     jsonio.dump(data, out)
+    html_out.write_text(page, encoding="utf-8")
     (folder / "trace.txt").write_text(trace_text(case, outputs, result), encoding="utf-8")
-    case["workflow"]["build"] = {"built_at": now(), "path": out.name, "gate": gate, "content_fp": appr["content_fp"]}
+    case["workflow"]["build"] = {"built_at": now(), "path": out.name, "html_path": html_out.name, "gate": gate,
+                                 "content_fp": appr["content_fp"]}
     save_case(cases_dir, report_id, case)
     review.append(cases_dir, {"type": "build", "report_id": report_id, "version": appr["report_version"],
                               "review_required": bool(reasons), "reasons": reasons})

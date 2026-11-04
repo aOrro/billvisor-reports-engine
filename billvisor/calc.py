@@ -89,6 +89,8 @@ def check_minimum(unit_id: str, facts: dict, case_info: dict) -> None:
         if facts.get("approximate_payment") in (None, ""):
             raise _missing("MINIMUM_FIELD_MISSING", "approximate_payment")
         need_contract_end("tariff_end", TARIFF_END_WORDS)
+        if facts.get("approximate_monthly_payment_gbp") is not None:  # optional, display-only normalisation
+            dec(facts["approximate_monthly_payment_gbp"], "facts.approximate_monthly_payment_gbp", positive=True)
 
 
 def _findings(unit_id: str, facts: dict, eng: dict | None) -> list[dict]:

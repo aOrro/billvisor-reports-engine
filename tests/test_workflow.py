@@ -180,11 +180,58 @@ class RequiredCases(CaseTest):
         self.assertTrue(e["stopped"])
         self.assertIsNone(e["coverage_status"])
         self.assertEqual(e["issues"][0]["code"], "SPECIALIST_ENERGY_USAGE_REQUIRED")
-        data = self.approve_and_build(rid)
+        data = workflow.run_approve(self.cd, rid, confirm=True)["result"]["body"]
         p = self.page(data, "energy_combined")
         self.assertEqual((p["coverage_status"], p["action_type"], p["score"]), ("Analysed with limitations", "Confirm information", None))
         self.assertIsNone(data["overall"])
-        self.assertIn("calculator_failure_or_manual_override", data["gate"]["reasons"])
+        self.assertIn("calculator_failure_or_manual_override", workflow.review_status(self.cd, rid)["reasons"])
+        # With no scored service there is no overall score, and the renderer contract has no approved
+        # cover for that case, so build refuses rather than inventing one (REVIEW_NEXT_STEPS open question).
+        workflow.review_record(self.cd, rid, "Content passed", "none", None)
+        with self.assertRaisesRegex(GateError, "no overall Bills Health Score"):
+            workflow.run_build(self.cd, rid)
+        self.assertEqual(list(self.cd.joinpath(rid).glob("report*.v*")), [])
+        self.assertEqual(p["confirmed_items"], ["Your supplier and tariff", "That you pay by Direct Debit"])
+        self.assertEqual(p["still_needed"], ["Your annual electricity and gas use"])
+
+    def test_4e_confirm_information_lists_checked(self):
+        case = fixture("energy_specialist")
+        case["decision"]["units"]["energy_combined"]["still_needed"] = []
+        rid = self.put(case)
+        workflow.run_calc(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "needs at least one still_needed item"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+        self.edit(rid, lambda c: c["decision"]["units"]["energy_combined"].update(
+            still_needed=["Your usage — not the benchmark figure"]))
+        with self.assertRaisesRegex(GateError, "benchmark"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+
+    def test_lists_refused_outside_confirm_information(self):
+        case = fixture("broadband_saving")
+        case["decision"]["units"]["broadband"]["still_needed"] = ["Your contract end date"]
+        rid = self.put(case)
+        workflow.run_calc(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "only for a Confirm information page"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+
+    def test_energy_monthly_payment_and_priority_reason(self):
+        case = fixture("household_energy_bedroom")
+        case["analysis_units"][2]["calculation_input"]["facts"]["approximate_monthly_payment_gbp"] = D("95")
+        case["decision"]["report"]["priority_reason"] = "Broadband is the clearest place to start."
+        rid = self.put(case)
+        data = self.approve_and_build(rid)
+        self.assertEqual(self.page(data, "energy_combined")["current_service"]["monthly_payment_gbp"], D("95.00"))
+        self.assertEqual(data["priority_reason"], "Broadband is the clearest place to start.")
+        # display-only: the annual spend is still the calculated tariff cost
+        self.assertEqual(self.page(data, "energy_combined")["current_annual_spend_gbp"], 1167)
+
+    def test_energy_monthly_payment_must_be_valid(self):
+        case = fixture("household_energy_bedroom")
+        case["analysis_units"][2]["calculation_input"]["facts"]["approximate_monthly_payment_gbp"] = "about 95"
+        rid = self.put(case)
+        outs = workflow.run_calc(self.cd, rid)
+        self.assertTrue(outs["energy_combined"]["stopped"])
+        self.assertEqual(outs["energy_combined"]["issues"][0]["field"], "facts.approximate_monthly_payment_gbp")
 
     def test_4b_stop_blocks_without_proceed_as(self):
         case = fixture("energy_specialist")
@@ -397,6 +444,9 @@ class Leakage(unittest.TestCase):
 
     def test_banned(self):
         self.assertTrue(self.check("Compared with our benchmark"))
+        self.assertTrue(self.check("Customer reviews rate this provider poorly"))
+        self.assertFalse(self.check("Review your broadband renewal price"))
+        self.assertFalse(self.check("We will finish your energy review"))
         self.assertTrue(self.check("A guaranteed saving"))
         self.assertTrue(self.check("the best deal available"))
         self.assertTrue(self.check("across the whole market"))
