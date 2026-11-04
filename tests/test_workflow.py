@@ -187,6 +187,15 @@ class RequiredCases(CaseTest):
         self.assertEqual(outs["energy_combined"]["issues"][0]["code"], "MINIMUM_FIELD_MISSING")
         self.assertEqual(outs["energy_combined"]["issues"][0]["field"], "facts.payment_method")
 
+    def test_postcode_required_for_every_requested_service(self):
+        case = fixture("broadband_saving")
+        case["case"]["postcode"] = ""
+        rid = self.put(case)
+        outs = workflow.run_calc(self.cd, rid)
+        issue = outs["broadband"]["issues"][0]
+        self.assertTrue(outs["broadband"]["stopped"])
+        self.assertEqual((issue["code"], issue["field"]), ("MINIMUM_FIELD_MISSING", "case.postcode"))
+
     def test_4d_northern_ireland_energy_cannot_proceed(self):
         case = fixture("energy_specialist")
         case["case"]["postcode"] = "BT7 1NN"

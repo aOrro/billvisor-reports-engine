@@ -237,3 +237,68 @@ The engine currently works as described below. Confirm each one, or say what sho
 8. **Postcode:** require `case.postcode` for every ordinary requested service; it is a case-level fact, not duplicated per service.
 9. **Economy 7 / multi-rate:** keep it outside the ordinary calculator. Stop the affected Energy unit safely and do not build the specialist route in this phase.
 10. **Review:** `REPORT_OUTPUT_QA.md` is now included as governing reference. The engine may enforce that a required human Review result exists, but must not pretend to automate the Review judgement.
+
+## Review of 6c5a595: template and QA conflicts
+
+Checked on 4 November 2026.
+
+**Confirmed:**
+- **Provider score files.** `docs/governing/{BROADBAND,MOBILE}_PROVIDER_SCORES.md` match `reference/provider_tables/*.json` exactly: all 12 broadband and 11 mobile providers, with every overall score and confidence level.
+- **Templates.** The templates contain no real names, email addresses or postcodes, no scripts, and no external web links.
+
+**Done in the engine:** `case.postcode` is now required for every requested service (answer 8). It was previously required only for energy. A test covers it.
+
+Items A1–A8 change or fill in the approved design. `LIVE_CASE_CALCULATOR_SPEC.md:275` says the design must not change without separate authority, so each needs a founder decision before item 1 (render HTML) can be built.
+
+### A. Template conflicts with the governing documents or the answers
+
+1. **Time and difficulty on the action pages.**
+   - Pages 3 and 7 show "Time required: 10 min / 15 min / 0 min", and page 7 also shows "Difficulty: Easy".
+   - `PHASE_1_RECOMMENDATION_FRAMEWORK.md:74` says: "Do not present these levels as measured facts or attach rigid time estimates until pilot evidence supports them."
+   - Decide whether to remove the time fields, and whether difficulty is removed or shown only as a qualitative Low/Moderate/High effort level.
+2. **Energy annual spend.**
+   - The examples annualise the monthly payment: page 2 shows electricity at £1,752, which is £146 × 12. Answer 5 says energy uses the calculated tariff cost instead.
+   - The energy page still shows "Monthly payment". A customer would therefore see a monthly figure that does not multiply to the annual figure.
+   - Decide how the page explains this: remove the monthly payment, label the annual figure "estimated annual cost", add a fixed sentence, or something else.
+3. **Similar-services comparison and annual spend on service pages.**
+   - `MEMORY.md:35` and `REPORT_OUTPUT_QA.md` §3 expect the customer to see current annual spend and "Similar services cost about £X a year" for broadband and mobile.
+   - Pages 4 and 5 show only a qualitative "How it compares" sentence and the saving, with no place for either figure.
+   - Decide where they appear, or whether the qualitative sentence replaces them. The latter would need `MEMORY.md:35` and the QA check updated.
+4. **Required content with no place in the templates.**
+   - **Provider-quality note:** QA §4 places it "between price comparison and recommendation".
+   - **"Supporting source details are available on request.":** this appears once per report. Say which page it goes on.
+   - **Limitation sentence:** a scored service that is Analysed with limitations (qualified comparison or price-only) needs its one limitation sentence somewhere. The only limitations template is the Confirm-information variant, which has no score.
+   - **Energy estimate note:** "Your consumption was estimated from households with similar characteristics."
+5. **Fields no governing document or engine field defines.**
+   - "Report confidence: High/Medium" on each service page.
+   - The "Market position" column on the overview (page 2).
+   - The priority labels "High priority / Medium priority / No action needed". The engine stores priority as a whole number from 1, set by the founder.
+   - The totals on pages 1 and 2: "annualised spend", "total potential savings", "services reviewed" and "priority actions".
+
+   For each, decide whether to remove it or define it. A suggested definition for the totals:
+   - **annualised spend:** the sum of current annual spend over Analysed and Analysed-with-limitations services;
+   - **total potential savings:** the sum of the savings the founder chose to show only;
+   - **services reviewed:** the number of services with a page;
+   - **priority actions:** actions other than Stay put.
+6. **Service-page labels differ from answer 2.**
+   - The broadband and mobile pages show "Provider type: Major provider / Mobile network" and "Package: Fibre 100 / 20 GB SIM-only". Answer 2 lists Provider (the name) and Download speed / Data allowance plus SIM-only or handset.
+   - The combined-energy page adds "Arrangement: Dual fuel". Answer 2 has "Gas/electricity service", which is assumed to be the same field.
+   - Confirm that answer 2's labels replace the template labels.
+7. **Confirm-information page lists.**
+   - The analysed-with-limitations template lists "What we could confirm" and "What is still needed".
+   - The suggestion is two founder-approved text lists in the decision, `confirmed_items[]` and `still_needed[]`, checked by the leakage check and printed in the approval pack. Confirm or amend.
+8. **Page 1 example errors.** These do not need a decision, but should not be copied:
+   - The gauge shows 74 as "Good" in green, but 74 is Medium (`BILLS_HEALTH_SCORE_METHOD.md`: Good is 75–100). The renderer takes the band from the data.
+   - Line 351 loads `../../../Documents/Business Planning/data-files/operations/report-template-system/assets/billvisor-house.png`. That file is not in the repo, so the image is broken. Add it to `templates/report/` if it belongs to the approved design.
+
+### B. REPORT_OUTPUT_QA.md conflicts
+
+9. **Energy annual spend.** QA §3 says "Current annual spend equals the submitted monthly payment multiplied by 12" and that it is "labelled as annualised from the submitted monthly payment", with no energy exception. After answer 5, Review would flag every energy page as a defect. QA §3 needs the same energy exception now in `MEMORY.md:35`, fixed in the source and recopied.
+10. **Review result vocabulary.**
+    - QA records a result (Content passed / Content passed after correction / Content blocked / Escalate before delivery) plus defect severities.
+    - The engine's `review-record --result` takes a single value: `pass`, `minor`, `major` or `critical`.
+    - Suggested change: the engine records the QA result plus the highest defect severity found.
+      - Building is allowed only after "Content passed" or "Content passed after correction".
+      - A Major or Critical severity resets the clean-run count.
+
+    Confirm or amend.

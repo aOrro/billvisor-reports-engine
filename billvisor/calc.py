@@ -59,6 +59,11 @@ def check_minimum(unit_id: str, facts: dict, case_info: dict) -> None:
         if v not in words and not is_iso_date(v):
             raise _missing("MINIMUM_FIELD_AMBIGUOUS", f, f"{f} must be an ISO date or one of {sorted(words)}: {v!r}")
 
+    # One case-level postcode is required for every ordinary requested service
+    # (LIVE_CASE_CALCULATOR_SPEC section 1, common case fields; founder answer 8, 2026-11-04).
+    if not nonempty_str(case_info.get("postcode")):
+        raise StopError("MINIMUM_FIELD_MISSING", "postcode is required for every requested service", "case.postcode")
+
     if unit_id == "broadband":
         need_str("provider")
         need_money("download_speed_mbps")
@@ -77,8 +82,6 @@ def check_minimum(unit_id: str, facts: dict, case_info: dict) -> None:
         need_money("monthly_price_gbp")
         need_contract_end("contract_end", CONTRACT_WORDS)
     else:
-        if not nonempty_str(case_info.get("postcode")):
-            raise StopError("MINIMUM_FIELD_MISSING", "postcode is required for energy", "case.postcode")
         for f in ("supplier", "payment_method", "tariff_type_or_name"):
             need_str(f)
         if facts.get("fuels") is None:
