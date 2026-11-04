@@ -220,3 +220,20 @@ The engine currently works as described below. Confirm each one, or say what sho
     - otherwise, the next report after four unreviewed reports in a row is spot-checked.
 
     `REPORT_OUTPUT_QA.md` is not in the repo. Supply it if Review's checks should be enforced by the engine rather than recorded as a pass/fail result.
+
+## Founder answers recorded — 4 November 2026
+
+1. **Approved template:** `templates/report/` now contains the approved synthetic template assets copied from `/Users/anton/billvisor/design/report/`: pages 1–7, the combined-Energy and analysed-with-limitations variants, shared CSS tokens and logo. It deliberately excludes the inspiration image and combined preview. A scan found no real customer names, email addresses or postcodes in the copied files. Use these files as the visual source; do not import the legacy generator or schema unless a specific compatibility need is demonstrated.
+2. **Current-service display fields:** use these exact renderer-safe fields, with no new package-name question:
+   - Broadband: Provider; Download speed; Monthly cost; Contract ends/status.
+   - Mobile: Provider; Data allowance plus SIM-only/handset status; Monthly cost; Contract ends/status.
+   - Energy: Supplier; Gas/electricity service; Tariff; Monthly payment; Tariff ends/status.
+   The supplied mobile extras text is not rendered automatically; any extra customer wording remains founder-approved content.
+3. **Regression cases:** create two fully synthetic fixtures from the existing test patterns and calculate expected assertions independently from the documented rules. Do not use real customer inputs or outputs.
+4. **Provider tables:** reference copies are now in `docs/governing/`. Retain `table_version: 2026-11-04-as-supplied`, `table_date: 2026-11-04` and `sources_publicly_accessible: null` in the runtime JSON until Evidence confirms an authoritative replacement. Therefore a triggered negative provider-quality note must remain blocked.
+5. **Energy annual spend:** use the current tariff's calculated annual cost for the Energy page and Energy’s overall-score weight. The customer’s approximate monthly payment is a sense-check only.
+6. **Same-provider tariff fit:** retain the current-provider requirement for the ordinary tariff-fit route. It is a tariff-fit signal, not an alternative-provider/whole-market comparison.
+7. **Mobile handset flag:** add `handset_included` explicitly to the spec and case validation as an internal true/false normalisation of the existing customer answer. Do not ask a second question.
+8. **Postcode:** require `case.postcode` for every ordinary requested service; it is a case-level fact, not duplicated per service.
+9. **Economy 7 / multi-rate:** keep it outside the ordinary calculator. Stop the affected Energy unit safely and do not build the specialist route in this phase.
+10. **Review:** `REPORT_OUTPUT_QA.md` is now included as governing reference. The engine may enforce that a required human Review result exists, but must not pretend to automate the Review judgement.

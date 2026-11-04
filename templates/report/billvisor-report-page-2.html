@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billvisor - Household Overview concept</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      html,
+      body { min-height: 100%; margin: 0; }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        color: var(--ink);
+        background: var(--canvas);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        position: relative;
+        width: 794px;
+        height: 1123px;
+        overflow: hidden;
+        padding: 48px 50px 38px;
+        background: var(--white);
+        border: 1px solid var(--page-border);
+        border-radius: 15px;
+        box-shadow: 0 18px 55px rgba(16, 41, 70, 0.13);
+      }
+
+      .page-number {
+        position: absolute;
+        top: 38px;
+        right: 50px;
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        color: var(--white);
+        background: var(--navy);
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 28px 0 30px;
+        color: var(--navy);
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+      }
+
+      .overview {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+
+      th {
+        height: 56px;
+        padding: 0 14px;
+        color: var(--muted);
+        background: var(--table-head);
+        border-bottom: 1px solid var(--line);
+        font-size: 9px;
+        font-weight: 700;
+        text-align: left;
+      }
+
+      td {
+        height: 92px;
+        padding: 0 14px;
+        color: var(--navy);
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+        vertical-align: middle;
+      }
+
+      tbody tr:last-child td { border-bottom: 0; }
+
+      .service {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-weight: 800;
+      }
+
+      .icon {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        color: var(--navy);
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .money { font-weight: 800; }
+      .saving { color: var(--green); font-weight: 800; }
+      .position { font-weight: 800; }
+      .position.good { color: var(--green); }
+      .position.medium { color: var(--amber-text); }
+      .position.poor { color: var(--red); }
+      .position.unknown { color: var(--grey); }
+
+      .score {
+        position: relative;
+        display: grid;
+        width: 58px;
+        height: 48px;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .score svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .score path {
+        fill: none;
+        stroke-width: 3;
+        stroke-linecap: round;
+      }
+
+      .score .track { stroke: var(--line); }
+      .score .progress {
+        transition: stroke-dasharray 160ms ease;
+      }
+
+      .score.medium .progress { stroke: var(--amber); }
+      .score.good .progress { stroke: var(--green); }
+      .score.poor .progress { stroke: var(--red); }
+      .score.unknown { color: var(--grey); }
+      .score.unknown .track { stroke: var(--neutral-track); }
+
+      .score-value {
+        position: relative;
+        z-index: 1;
+      }
+
+      .total-row {
+        display: grid;
+        grid-template-columns: 25% 17% 21% 20% 17%;
+        align-items: center;
+        min-height: 82px;
+        color: var(--navy);
+        background: var(--table-total);
+        border-top: 1px solid var(--line);
+      }
+
+      .total-label {
+        padding-left: 14px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .total-stat span {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+
+      .total-stat strong {
+        color: var(--navy);
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .total-stat.savings strong { color: var(--green); }
+
+      .interpretation {
+        display: grid;
+        grid-template-columns: 195px 1fr;
+        gap: 29px;
+        align-items: center;
+        margin-top: 18px;
+        padding: 23px 25px;
+        border: 1px solid var(--green-border);
+        border-radius: 11px;
+        background: var(--green-soft);
+      }
+
+      .saving-summary {
+        display: grid;
+        grid-template-columns: 25px 1fr;
+        gap: 11px;
+        align-items: center;
+      }
+
+      .saving-summary .icon { width: 23px; height: 23px; color: var(--green); }
+
+      .saving-summary span {
+        display: block;
+        color: var(--positive-copy);
+        font-size: 9px;
+        font-weight: 700;
+      }
+
+      .saving-summary strong {
+        display: block;
+        margin-top: 4px;
+        color: var(--green);
+        font-size: 26px;
+        line-height: 1;
+      }
+
+      .interpretation-copy {
+        padding-left: 28px;
+        border-left: 1px solid var(--green-divider);
+      }
+
+      .interpretation-copy strong {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--navy);
+        font-size: 15px;
+      }
+
+      .interpretation-copy p {
+        margin: 0;
+        color: var(--body-copy);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      .key {
+        display: grid;
+        grid-template-columns: repeat(4, auto);
+        justify-content: start;
+        gap: 23px;
+        margin-top: 23px;
+        color: var(--muted);
+        font-size: 9px;
+      }
+
+      .key-item { display: flex; align-items: center; gap: 6px; }
+      .dot { width: 7px; height: 7px; border-radius: 50%; }
+      .dot.good { background: var(--green); }
+      .dot.medium { background: var(--amber); }
+      .dot.poor { background: var(--red); }
+      .dot.unknown { background: var(--grey); }
+
+      .footer {
+        position: absolute;
+        right: 50px;
+        bottom: 24px;
+        color: var(--footer-copy);
+        font-size: 8px;
+      }
+
+      @media print {
+        @page { size: A4; margin: 0; }
+        body { padding: 0; background: var(--white); }
+        .page { border: 0; border-radius: 0; box-shadow: none; }
+      }
+    </style>
+    <link rel="stylesheet" href="report-design-tokens.css" />
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <symbol id="icon-wifi" viewBox="0 0 24 24">
+        <path d="M4 9a12 12 0 0 1 16 0M7 12a8 8 0 0 1 10 0M10 15a4 4 0 0 1 4 0M12 19h.01" />
+      </symbol>
+      <symbol id="icon-mobile" viewBox="0 0 24 24">
+        <rect x="7" y="2.5" width="10" height="19" rx="2" />
+        <path d="M10 5h4M11 18.5h2" />
+      </symbol>
+      <symbol id="icon-energy" viewBox="0 0 24 24">
+        <path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z" />
+      </symbol>
+      <symbol id="icon-gas" viewBox="0 0 24 24">
+        <path d="M13 2s1 4-2 7c-2 2-3 4-2 7 1 4 6 5 9 2 4-4 0-10-5-16Z" />
+        <path d="M9 12c-3 2-4 5-2 8" />
+      </symbol>
+      <symbol id="icon-savings" viewBox="0 0 24 24">
+        <ellipse cx="8" cy="6" rx="5" ry="2.5" />
+        <path d="M3 6v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V6M3 10v4c0 1.4 2.2 2.5 5 2.5 1.2 0 2.3-.2 3.2-.6" />
+        <path d="m14 16 2.2 2.2L21 12.8" />
+      </symbol>
+    </svg>
+
+    <article class="page">
+      <div class="report-brand"><img src="billvisor-logo.svg" alt="" /><span>Billvisor</span></div>
+      <h1>Your Household Overview</h1>
+
+      <section class="overview">
+        <table>
+          <colgroup>
+            <col style="width:25%" />
+            <col style="width:17%" />
+            <col style="width:21%" />
+            <col style="width:20%" />
+            <col style="width:17%" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Annual spend</th>
+              <th>Market position</th>
+              <th>Potential savings</th>
+              <th>Health score</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="service"><svg class="icon" aria-hidden="true"><use href="#icon-wifi" /></svg>Broadband</div></td>
+              <td class="money">£552</td>
+              <td><span class="position medium">Medium</span></td>
+              <td class="saving">£95</td>
+              <td>
+                <div class="score medium" aria-label="Health score 62 out of 100">
+                  <svg viewBox="0 0 58 56" aria-hidden="true">
+                    <path class="track" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" />
+                    <path class="progress" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" stroke-dasharray="62 100" />
+                  </svg>
+                  <span class="score-value">62</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><div class="service"><svg class="icon" aria-hidden="true"><use href="#icon-mobile" /></svg>Mobile</div></td>
+              <td class="money">£216</td>
+              <td><span class="position good">Good</span></td>
+              <td class="saving">£24</td>
+              <td>
+                <div class="score good" aria-label="Health score 88 out of 100">
+                  <svg viewBox="0 0 58 56" aria-hidden="true">
+                    <path class="track" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" />
+                    <path class="progress" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" stroke-dasharray="88 100" />
+                  </svg>
+                  <span class="score-value">88</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><div class="service"><svg class="icon" aria-hidden="true"><use href="#icon-gas" /></svg>Gas</div></td>
+              <td class="money">—</td>
+              <td><span class="position unknown">Not analysed</span></td>
+              <td>—</td>
+              <td><div class="score unknown" aria-label="Health score unavailable"><span class="score-value">—</span></div></td>
+            </tr>
+            <tr>
+              <td><div class="service"><svg class="icon" aria-hidden="true"><use href="#icon-energy" /></svg>Electricity</div></td>
+              <td class="money">£1,752</td>
+              <td><span class="position medium">Medium</span></td>
+              <td class="saving">£160</td>
+              <td>
+                <div class="score medium" aria-label="Health score 71 out of 100">
+                  <svg viewBox="0 0 58 56" aria-hidden="true">
+                    <path class="track" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" />
+                    <path class="progress" d="M14 46 A22 22 0 1 1 44 46" pathLength="100" stroke-dasharray="71 100" />
+                  </svg>
+                  <span class="score-value">71</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="total-row">
+          <div class="total-label">Total</div>
+          <div class="total-stat"><span>Annualised spend</span><strong>£2,520</strong></div>
+          <div></div>
+          <div class="total-stat savings"><span>Potential savings</span><strong>£279</strong></div>
+          <div></div>
+        </div>
+      </section>
+
+      <section class="interpretation">
+        <div class="saving-summary">
+          <svg class="icon" aria-hidden="true"><use href="#icon-savings" /></svg>
+          <div><span>Total potential savings</span><strong>£279</strong></div>
+        </div>
+        <div class="interpretation-copy">
+          <strong>Focus on broadband and electricity.</strong>
+          <p>Those reviews account for £255 of the potential saving. The additional £24 mobile saving is visible, but we do not think it is enough to justify changing.</p>
+        </div>
+      </section>
+
+      <div class="key" aria-label="Market position key">
+        <div class="key-item"><span class="dot good"></span>Good</div>
+        <div class="key-item"><span class="dot medium"></span>Medium</div>
+        <div class="key-item"><span class="dot poor"></span>Poor</div>
+        <div class="key-item"><span class="dot unknown"></span>Analysed with limitations</div>
+      </div>
+
+      <img class="closing-watermark" src="billvisor-logo.svg" alt="" aria-hidden="true" />
+
+      <div class="footer">Concept · Page 2 of 7</div>
+    </article>
+  </body>
+</html>

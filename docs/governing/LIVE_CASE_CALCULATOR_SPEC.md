@@ -37,6 +37,7 @@ The existing display-oriented `household_facts` and `evidence` fields should lat
 | `analysis_unit.id` | R | `broadband`, `mobile`, `energy_combined`, `gas` or `electricity`. |
 | `analysis_unit.services` | R | Supported service or services represented by the unit. |
 | `requested` | R | Whether the household asked Billvisor to analyse the service. |
+| `case.postcode` | R when any supported service is requested | One case-level postcode is required for every ordinary case. It supports the founder's market search and service/geography controls; it is not repeated inside each service fact group. |
 | `customer_source_ref` | R when requested | Reference to the supplied wording or extracted record. |
 | `capture_date` | C | Required when market observations are used. |
 
@@ -57,6 +58,7 @@ The existing display-oriented `household_facts` and `evidence` fields should lat
 | `provider` | R |
 | `data_allowance_gb` or `data_allowance_unlimited` | R |
 | `handset_or_important_extras` | R: supplied description or `none` |
+| `handset_included` | R: internal `true`/`false` normalisation of the supplied handset/extras answer. It does not create an additional customer question. |
 | `monthly_price_gbp` | R |
 | `contract_end` | R: ISO date, `out_of_contract` or `unknown` |
 
@@ -66,7 +68,7 @@ The calculator must not treat a handset-inclusive price as SIM-only.
 
 | Field | Need |
 | --- | --- |
-| `postcode` | R |
+| `postcode` | R at case level; see common case fields above |
 | `supplier` | R |
 | `fuels` | R: gas, electricity or both |
 | `approximate_payment` | R: monthly amount or supplied payment pattern |
@@ -184,6 +186,7 @@ Return:
 
 - selected consumption values and source level;
 - exact annual cost for every observation and a combined total where applicable;
+- the current tariff's calculated annual cost as the Energy current-annual-spend figure and as Energy's overall-score weight; the customer-supplied approximate monthly payment remains a sense-check only;
 - exact positive saving candidates against the current-cost model;
 - any exact like-for-like payment-method saving candidate;
 - tariff timing and exit-fee facts as captured;

@@ -18,9 +18,10 @@ commit message before changing implementation.
 | BROADBAND_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/broadband/ |
 | MOBILE_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/mobile/ |
 | ENERGY_PROVIDER_SCORING_METHOD.md | context-files/evidence/provider-scoring/energy/ |
-| BROADBAND_PROVIDER_SCORES.md, MOBILE_PROVIDER_SCORES.md | data-files/evidence/provider-scoring/ (structured copies in `reference/provider_tables/`) |
+| BROADBAND_PROVIDER_SCORES.md, MOBILE_PROVIDER_SCORES.md | data-files/evidence/provider-scoring/ (reference copies here; runtime structured copies in `reference/provider_tables/`) |
 | CLAUDE_REPORT_GENERATOR_BUILD_BRIEF.md | build brief (lowest authority) |
-| REPORT_OUTPUT_QA.md, PHASE_1_EMAIL_UX.md | not yet supplied; add only when the engine takes responsibility for those controls |
+| REPORT_OUTPUT_QA.md | context-files/review/ (human Review standard; the engine enforces the required-pass gate, not the judgement) |
+| PHASE_1_EMAIL_UX.md | not yet supplied; add only when the engine takes responsibility for those controls |
 
 ## Founder rulings applied where documents conflict (2026-11-04)
 
