@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billvisor - Bills Health Report concept</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        color: var(--ink);
+        background: var(--canvas);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        position: relative;
+        width: 794px;
+        height: 1123px;
+        overflow: hidden;
+        padding: 48px 50px 38px;
+        background: var(--white);
+        border: 1px solid var(--page-border);
+        border-radius: 15px;
+        box-shadow: 0 18px 55px rgba(16, 41, 70, 0.13);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--navy);
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+      }
+
+      .brand svg { width: 26px; height: 30px; }
+
+      .meta {
+        color: var(--navy);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.55;
+        text-align: right;
+        text-transform: uppercase;
+      }
+
+      .hero {
+        position: relative;
+        min-height: 294px;
+        padding-top: 54px;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 2;
+        width: 360px;
+      }
+
+      h1 {
+        margin: 0 0 15px;
+        color: var(--navy);
+        font-size: 38px;
+        line-height: 1.04;
+        letter-spacing: -0.045em;
+      }
+
+      .intro {
+        width: 335px;
+        margin: 0;
+        color: var(--intro-copy);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .house-circle {
+        position: absolute;
+        z-index: 1;
+        top: 44px;
+        right: 67px;
+        width: 224px;
+        height: 224px;
+        background: var(--hero-circle);
+        border-radius: 50%;
+      }
+
+      .house {
+        position: absolute;
+        z-index: 2;
+        top: 84px;
+        right: 4px;
+        width: 335px;
+        height: 194px;
+        object-fit: contain;
+        object-position: center;
+      }
+
+      .health-card {
+        display: grid;
+        grid-template-columns: 245px 1fr;
+        min-height: 258px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--white);
+      }
+
+      .score-panel {
+        padding: 22px 26px;
+        border-right: 1px solid var(--line);
+      }
+
+      .card-kicker {
+        margin: 0 0 15px;
+        color: var(--navy);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .gauge-wrap {
+        position: relative;
+        width: 166px;
+        height: 130px;
+        margin: 0 auto 1px;
+      }
+
+      .gauge-wrap svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      .score-value {
+        position: absolute;
+        top: 53px;
+        left: 0;
+        width: 100%;
+        color: var(--navy);
+        text-align: center;
+      }
+
+      .score-value strong {
+        display: block;
+        font-size: 46px;
+        line-height: 0.88;
+        letter-spacing: -0.06em;
+      }
+
+      .score-value span { font-size: 11px; font-weight: 700; }
+
+      .score-label {
+        margin-top: -4px;
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 800;
+        text-align: center;
+      }
+
+      .score-note {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 9px;
+        text-align: center;
+      }
+
+      .answer-panel {
+        display: grid;
+        grid-template-columns: 1fr 142px;
+        gap: 28px;
+        align-items: center;
+        padding: 28px 30px;
+      }
+
+      .answer-label {
+        margin-bottom: 11px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+      }
+
+      .answer-title {
+        margin: 0 0 13px;
+        color: var(--navy);
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+      }
+
+      .answer-reason {
+        margin: 0;
+        color: var(--body-copy);
+        font-size: 11px;
+        line-height: 1.55;
+      }
+
+      .saving {
+        padding-left: 23px;
+        border-left: 1px solid var(--line);
+      }
+
+      .saving span {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .saving strong {
+        display: block;
+        color: var(--green);
+        font-size: 29px;
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .saving small {
+        color: var(--green);
+        font-size: 9px;
+        font-weight: 700;
+      }
+
+      .glance-card {
+        margin-top: 15px;
+        padding: 19px 21px 15px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+      }
+
+      .glance-title {
+        margin: 0 0 16px;
+        color: var(--navy);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .metric {
+        display: grid;
+        grid-template-columns: 20px 1fr;
+        gap: 8px;
+        min-width: 0;
+        padding: 0 15px;
+        border-right: 1px solid var(--line);
+      }
+
+      .metric:first-child { padding-left: 0; }
+      .metric:last-child { padding-right: 0; border-right: 0; }
+      .metric-icon {
+        width: 17px;
+        height: 17px;
+        margin-top: 2px;
+        color: var(--navy);
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .metric.saving-metric svg,
+      .metric.saving-metric strong { color: var(--green); }
+
+      .metric strong {
+        display: block;
+        color: var(--navy);
+        font-size: 15px;
+        line-height: 1.1;
+      }
+
+      .metric span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 1.25;
+      }
+
+      .footer {
+        position: absolute;
+        right: 50px;
+        bottom: 24px;
+        color: var(--footer-copy);
+        font-size: 8px;
+      }
+
+      @media print {
+        @page { size: A4; margin: 0; }
+        body { padding: 0; background: var(--white); }
+        .page { border: 0; border-radius: 0; box-shadow: none; }
+      }
+    </style>
+    <link rel="stylesheet" href="report-design-tokens.css" />
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <symbol id="icon-report" viewBox="0 0 24 24">
+        <rect x="4" y="3" width="16" height="18" rx="2" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </symbol>
+      <symbol id="icon-spend" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M14.5 8.5c-.6-.6-1.4-.9-2.4-.9-1.5 0-2.6.8-2.6 2s1 1.8 2.7 2.2c1.6.4 2.6 1 2.6 2.2s-1.1 2.2-2.8 2.2c-1.1 0-2.1-.4-2.8-1.1M12 6v12" />
+      </symbol>
+      <symbol id="icon-savings" viewBox="0 0 24 24">
+        <ellipse cx="8" cy="6" rx="5" ry="2.5" />
+        <path d="M3 6v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V6M3 10v4c0 1.4 2.2 2.5 5 2.5 1.2 0 2.3-.2 3.2-.6" />
+        <path d="m14 16 2.2 2.2L21 12.8" />
+      </symbol>
+      <symbol id="icon-action" viewBox="0 0 24 24">
+        <path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z" />
+      </symbol>
+    </svg>
+    <article class="page">
+      <header class="topbar">
+        <div class="brand">
+          <img class="brand-logo" src="billvisor-logo.svg" alt="" />
+          Billvisor
+        </div>
+        <div class="meta">Bills Health Report<br />Fictional example</div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>Your Bills<br />Health Report</h1>
+          <p class="intro">A clear view of your household bills, what deserves your attention and what does not.</p>
+        </div>
+        <div class="house-circle" aria-hidden="true"></div>
+        <img class="house" src="../../../Documents/Business Planning/data-files/operations/report-template-system/assets/billvisor-house.png" alt="House illustration" />
+      </section>
+
+      <section class="health-card">
+        <div class="score-panel">
+          <p class="card-kicker">Bills Health Score</p>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 180 130" aria-hidden="true">
+              <path d="M22 111 A72 72 0 1 1 158 111" pathLength="100" fill="none" stroke="var(--gauge-track)" stroke-width="10" stroke-linecap="round" />
+              <path d="M22 111 A72 72 0 1 1 158 111" pathLength="100" fill="none" stroke="var(--green)" stroke-width="10" stroke-linecap="round" stroke-dasharray="74 100" />
+            </svg>
+            <div class="score-value"><strong>74</strong><span>/100</span></div>
+          </div>
+          <div class="score-label">Good</div>
+          <p class="score-note">Based on 3 scored services</p>
+        </div>
+
+        <div class="answer-panel">
+          <div>
+            <div class="answer-label">Our top recommendation</div>
+            <p class="answer-title">Review your broadband renewal price</p>
+            <p class="answer-reason">Your broadband appears expensive compared with similar services, making this the most worthwhile place to start.</p>
+          </div>
+          <div class="saving">
+            <span>Potential annual savings</span>
+            <strong>£279</strong>
+            <small>across reviewed bills</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="glance-card">
+        <p class="glance-title">At a glance</p>
+        <div class="metrics">
+          <div class="metric">
+            <svg class="metric-icon" aria-hidden="true"><use href="#icon-report" /></svg>
+            <div><strong>3</strong><span>services reviewed</span></div>
+          </div>
+          <div class="metric">
+            <svg class="metric-icon" aria-hidden="true"><use href="#icon-spend" /></svg>
+            <div><strong>£2,520</strong><span>annualised spend</span></div>
+          </div>
+          <div class="metric saving-metric">
+            <svg class="metric-icon" aria-hidden="true"><use href="#icon-savings" /></svg>
+            <div><strong>£279</strong><span>potential savings</span></div>
+          </div>
+          <div class="metric">
+            <svg class="metric-icon" aria-hidden="true"><use href="#icon-action" /></svg>
+            <div><strong>2</strong><span>priority actions</span></div>
+          </div>
+        </div>
+      </section>
+
+      <img class="closing-watermark" src="billvisor-logo.svg" alt="" aria-hidden="true" />
+
+      <div class="footer">Concept · Page 1 of 7</div>
+    </article>
+  </body>
+</html>

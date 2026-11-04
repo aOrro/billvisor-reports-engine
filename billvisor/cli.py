@@ -5,8 +5,16 @@ from __future__ import annotations
 import argparse
 import sys
 
-from . import jsonio, workflow
+from . import jsonio, review, workflow
 from .errors import GateError
+
+# Short CLI flags for the REPORT_OUTPUT_QA.md outcomes (stored with their exact QA wording).
+OUTCOME_FLAGS = {
+    "passed": "Content passed",
+    "passed-after-correction": "Content passed after correction",
+    "blocked": "Content blocked",
+    "escalate": "Escalate before delivery",
+}
 
 
 def _validate(cases_dir, rid) -> int:
@@ -34,7 +42,9 @@ def main(argv: list[str] | None = None) -> int:
     a.add_argument("--yes", action="store_true", help="record the founder approval (without it, preview only)")
     r = sub.add_parser("review-record")
     r.add_argument("report_id")
-    r.add_argument("--result", required=True, choices=["pass", "minor", "major", "critical"])
+    r.add_argument("--outcome", required=True, choices=list(OUTCOME_FLAGS),
+                   help="QA result: " + "; ".join(f"{k} = {v}" for k, v in OUTCOME_FLAGS.items()))
+    r.add_argument("--severity", required=True, choices=list(review.SEVERITIES), help="highest defect severity found")
     r.add_argument("--note")
     args = ap.parse_args(argv)
 
@@ -60,9 +70,10 @@ def main(argv: list[str] | None = None) -> int:
         elif args.cmd == "review-status":
             print(jsonio.dumps(workflow.review_status(cd, rid)))
         elif args.cmd == "review-record":
-            print(jsonio.dumps(workflow.review_record(cd, rid, args.result, args.note)))
+            print(jsonio.dumps(workflow.review_record(cd, rid, OUTCOME_FLAGS[args.outcome], args.severity, args.note)))
         elif args.cmd == "build":
-            print(f"report data: {workflow.run_build(cd, rid)}")
+            out = workflow.run_build(cd, rid)
+            print(f"report data: {out}\nreport HTML: {out.with_name(out.name.replace('report_data', 'report').replace('.json', '.html'))}")
     except GateError as e:
         print(f"BLOCKED: {e}", file=sys.stderr)
         return 2

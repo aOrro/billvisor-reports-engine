@@ -4,6 +4,7 @@ cases/
 out/
 _review_ledger.json
 report_data.v*.json
+report.v*.html
 approval-pack.md
 trace.txt
 

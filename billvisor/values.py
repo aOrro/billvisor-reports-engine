@@ -45,8 +45,10 @@ def is_iso_date(value: Any) -> bool:
         return False
 
 
-def round_half_up(d: Decimal) -> int:
-    return int(d.quantize(ONE, rounding=ROUND_HALF_UP))
+def round_half_up(d: Decimal | int) -> int:
+    if isinstance(d, bool) or not isinstance(d, (Decimal, int)):
+        raise TypeError(f"round_half_up needs a Decimal or int, not {type(d).__name__}")
+    return int(Decimal(d).quantize(ONE, rounding=ROUND_HALF_UP))
 
 
 def gbp(d: Decimal) -> str:

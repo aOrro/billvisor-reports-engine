@@ -1,0 +1,24 @@
+{
+  "overall": {"value": 65, "band": "Medium", "colour": "amber", "contributing_services": 2},
+  "pages": ["broadband", "energy_combined"],
+  "action_order": ["broadband", "energy_combined"],
+  "totals": {"annual_spend_gbp": 2062, "potential_savings_gbp": 228, "services_reviewed": 2, "priority_actions": 2},
+  "service_pages": {
+    "broadband": {
+      "coverage_status": "Analysed",
+      "score": {"value": 39, "band": "Poor", "colour": "red"},
+      "current_annual_spend_gbp": 600,
+      "comparison_annual_gbp": 372,
+      "potential_saving_gbp": 228,
+      "provider_note": null
+    },
+    "energy_combined": {
+      "coverage_status": "Analysed",
+      "score": {"value": 76, "band": "Good", "colour": "green"},
+      "current_annual_spend_gbp": 1462,
+      "comparison_annual_gbp": null,
+      "potential_saving_gbp": null,
+      "estimate_note": "Your consumption was estimated from households with similar characteristics."
+    }
+  }
+}

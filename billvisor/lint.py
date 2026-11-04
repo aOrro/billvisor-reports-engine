@@ -10,7 +10,9 @@ BANNED_PHRASES = [
     (r"\bbest[- ]deal", "best-deal claim"),
     (r"\bwhole[- ]market\b", "whole-market claim"),
     (r"\bcheapest\b", "cheapest/best-deal claim"),
-    (r"\breviews?\b", "evidence must not be called reviews"),
+    # MEMORY.md / REPORT_OUTPUT_QA section 4: do not call the evidence "reviews". The singular verb/noun
+    # ("Review your renewal price", "Review later") is ordinary approved action wording.
+    (r"\breviews\b", "evidence must not be called reviews"),
     (r"£\s*0+(?:\.0+)?(?![\d.])", "£0 figure"),
     (r"\bsav\w*\s+(?:of\s+)?about\s+£", "'about' must not prefix the potential saving"),
     (r"\babout\s+£[\d,]+\s+(?:a year\s+)?(?:in\s+)?sav", "'about' must not prefix the potential saving"),

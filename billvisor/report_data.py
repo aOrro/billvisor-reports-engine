@@ -12,12 +12,55 @@ from decimal import Decimal
 from . import REPORT_DATA_CONTRACT_VERSION, lint, score
 from .calc import LABELS, LIMITATION_DEFAULT_TEXT, unit_sort_key
 from .energy import ESTIMATE_WORDING
-from .errors import CUSTOMER_INFO_CODES, GateError
-from .values import gbp_whole, nonempty_str, round_half_up
+from .errors import CUSTOMER_INFO_CODES, GateError, StopError
+from .values import dec, gbp_whole, nonempty_str, round_half_up
 
 ACTION_TYPES = ["Stay put", "Improve the current setup", "Look at changing now", "Review later", "Confirm information"]
 EFFORT = ["Low", "Moderate", "High"]
 SOURCE_LINE = "Supporting source details are available on request."
+
+
+def _money_2dp(value) -> Decimal | None:
+    try:
+        return dec(value, "current_service").quantize(Decimal("0.01"))
+    except StopError:
+        return None
+
+
+def current_service(uid: str, facts: dict | None) -> dict:
+    """The household's own submitted details for the "Your current service" block
+    (PHASE_1_REPORT_RENDERER_CONTRACT section 4). Values are raw facts: date strings and codes such as
+    out_of_contract are passed through, and their display wording belongs to the renderer contract.
+    Missing facts are null (for example on a Confirm-information page)."""
+    f = facts if isinstance(facts, dict) else {}
+    if uid == "broadband":
+        return {"provider": f.get("provider"), "download_speed_mbps": f.get("download_speed_mbps"),
+                "monthly_cost_gbp": _money_2dp(f.get("monthly_price_gbp")), "contract_end": f.get("contract_end")}
+    if uid == "mobile":
+        handset = f.get("handset_included")
+        return {"provider": f.get("provider"),
+                "data_allowance_gb": f.get("data_allowance_gb"),
+                "data_allowance_unlimited": f.get("data_allowance_unlimited") is True,
+                "plan_type": {True: "handset_included", False: "sim_only"}.get(handset) if isinstance(handset, bool) else None,
+                "monthly_cost_gbp": _money_2dp(f.get("monthly_price_gbp")), "contract_end": f.get("contract_end")}
+    # Energy. monthly_payment_gbp comes only from Operations' optional normalised figure; the customer's own
+    # approximate_payment wording is never parsed (renderer contract section 4).
+    return {"supplier": f.get("supplier"), "services": f.get("fuels"), "tariff": f.get("tariff_type_or_name"),
+            "monthly_payment_gbp": _money_2dp(f.get("approximate_monthly_payment_gbp")),
+            "tariff_end": f.get("tariff_end")}
+
+
+def _totals(pages: list[dict], actions: list[dict]) -> dict:
+    """PHASE_1_REPORT_RENDERER_CONTRACT section 3. Sums use the displayed whole-pound figures so the
+    totals reconcile with what the customer sees on each page (REPORT_OUTPUT_QA section 3)."""
+    spends = [p["current_annual_spend_gbp"] for p in pages if p["current_annual_spend_gbp"] is not None]
+    savings = [p["potential_saving_gbp"] for p in pages if p["potential_saving_gbp"] is not None]
+    return {
+        "annual_spend_gbp": sum(spends) if spends else None,
+        "potential_savings_gbp": sum(savings) if savings else None,  # never a £0 total
+        "services_reviewed": len(pages),
+        "priority_actions": sum(1 for a in actions if a["action_type"] != "Stay put"),
+    }
 
 
 def decision_template(case: dict, calc: dict[str, dict]) -> dict:
@@ -39,8 +82,10 @@ def decision_template(case: dict, calc: dict[str, dict]) -> dict:
             "small_saving_not_worth_effort": False,
             "findings_shown": [],
             "proceed_as": None,
+            "confirmed_items": [],   # Confirm information only: "What we could confirm"
+            "still_needed": [],      # Confirm information only: "What we still need"
         }
-    return {"units": units, "report": {"summary": None}, "manual_override": False}
+    return {"units": units, "report": {"summary": None, "priority_reason": None}, "manual_override": False}
 
 
 def _forbidden_providers(case: dict) -> set[str]:
@@ -97,7 +142,8 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
         if status == "Not analysed":
             if d:
                 errors.append(f"{uid}: not requested, so it must have no decision entry (overview only)")
-            overview.append({"unit_id": uid, "label": label, "coverage_status": "Not analysed", "score": None, "page": False})
+            overview.append({"unit_id": uid, "label": label, "coverage_status": "Not analysed", "score": None, "page": False,
+                             "annual_spend_gbp": None, "potential_saving_gbp": None})
             continue
 
         if not isinstance(d, dict):
@@ -190,12 +236,28 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
 
         score_block = None
         if sc:
-            score_block = {"value": sc["display"], "band": sc["band"], "colour": score.COLOUR[sc["band"]],
-                           "estimated": bool(sc.get("estimated"))}
+            # The qualified-comparison flag stays in calculation_output/trace only: it is never a
+            # customer-facing label (BILLS_HEALTH_SCORE_METHOD §2.1), so the renderer never receives it.
+            score_block = {"value": sc["display"], "band": sc["band"], "colour": score.COLOUR[sc["band"]]}
             final_scores[uid] = {"exact": sc["exact"], "display": sc["display"], "band": sc["band"],
                                  "floor_applied": bool(sc.get("floor_applied"))}
         overall_entries.append({"unit_id": uid, "status": status, "exact": sc["exact"] if sc else None,
                                 "current_annual": spend if spend is not None else Decimal(0)})
+
+        # Confirm-information lists (renderer contract section 6): founder-approved, Confirm information only.
+        confirmed_items, still_needed = d.get("confirmed_items") or [], d.get("still_needed") or []
+        list_errors = [f"{uid}: {name} must be a list of non-empty text items"
+                       for name, items in (("confirmed_items", confirmed_items), ("still_needed", still_needed))
+                       if not isinstance(items, list) or not all(nonempty_str(x) for x in items)]
+        errors.extend(list_errors)
+        if not list_errors:
+            if at == "Confirm information" and not still_needed:
+                errors.append(f"{uid}: Confirm information needs at least one still_needed item")
+            if at != "Confirm information" and (confirmed_items or still_needed):
+                errors.append(f"{uid}: confirmed_items/still_needed are only for a Confirm information page")
+            for t in confirmed_items + still_needed:
+                for p in lint.check_text(t, forbidden_providers=forbidden, allow_customer_gap=True):
+                    errors.append(f"{uid}: {p}: {t!r}")
 
         texts = [d.get("headline"), d.get("explanation"), d.get("next_step"), limitation]
         for t in texts:
@@ -207,6 +269,7 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
             "unit_id": uid,
             "label": label,
             "coverage_status": status,
+            "current_service": current_service(uid, (u.get("calculation_input") or {}).get("facts")),
             "limitation": limitation,
             "estimate_note": estimate_note,
             "current_annual_spend_gbp": round_half_up(spend) if spend is not None and not proceeding else None,
@@ -223,16 +286,26 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
             "explanation": d.get("explanation"),
             "next_step": d.get("next_step"),
             "findings": findings,
+            "confirmed_items": confirmed_items if at == "Confirm information" else [],
+            "still_needed": still_needed if at == "Confirm information" else [],
         }
         pages.append(page)
-        overview.append({"unit_id": uid, "label": label, "coverage_status": status, "score": score_block, "page": True})
-        actions.append({"unit_id": uid, "label": label, "priority": pr, "action_type": at, "next_step": d.get("next_step"),
-                        "potential_saving_gbp": saving_display})
+        overview.append({"unit_id": uid, "label": label, "coverage_status": status, "score": score_block, "page": True,
+                         "annual_spend_gbp": page["current_annual_spend_gbp"],
+                         "potential_saving_gbp": saving_display})
+        actions.append({"unit_id": uid, "label": label, "priority": pr, "action_type": at, "effort": d.get("effort"),
+                        "next_step": d.get("next_step"), "potential_saving_gbp": saving_display})
 
-    summary = (decision.get("report") or {}).get("summary")
-    if nonempty_str(summary):
-        for p in lint.check_text(summary, forbidden_providers=forbidden, allow_customer_gap=False):
-            errors.append(f"report.summary: {p}")
+    report_text = {}
+    for key in ("summary", "priority_reason"):
+        t = (decision.get("report") or {}).get(key)
+        if t is not None and not nonempty_str(t):
+            errors.append(f"report.{key} must be text or null")
+            t = None
+        if t:
+            for p in lint.check_text(t, forbidden_providers=forbidden, allow_customer_gap=False):
+                errors.append(f"report.{key}: {p}")
+        report_text[key] = t
     if not pages:
         errors.append("no service pages: at least one requested service must be reportable")
     if errors:
@@ -253,7 +326,9 @@ def assemble(case: dict, calc: dict[str, dict], decision: dict | None) -> dict:
         "overview": overview,
         "service_pages": pages,
         "priority_actions": actions,
-        "summary": summary if nonempty_str(summary) else None,
+        "totals": _totals(pages, actions),
+        "summary": report_text["summary"],
+        "priority_reason": report_text["priority_reason"],
         # BILLS_HEALTH_SCORE_METHOD section 6: "Include once per report".
         "report_notes": [SOURCE_LINE],
     }

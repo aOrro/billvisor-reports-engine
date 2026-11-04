@@ -1,7 +1,6 @@
 """Brief-required end-to-end cases, gates, Review ledger and leakage checks."""
 
 import copy
-import json
 import tempfile
 import unittest
 from decimal import Decimal as D
@@ -39,13 +38,27 @@ class CaseTest(unittest.TestCase):
         fn(case)
         workflow.save_case(self.cd, rid, case)
 
-    def approve_and_build(self, rid, review_result="pass"):
+    def assert_no_internal_flags(self, data):
+        """report_data must not carry the qualified-comparison flag anywhere."""
+        def walk(node):
+            if isinstance(node, dict):
+                self.assertNotIn("estimated", node)
+                for v in node.values():
+                    walk(v)
+            elif isinstance(node, list):
+                for v in node:
+                    walk(v)
+        walk(data)
+
+    def approve_and_build(self, rid, review_result=("Content passed", "none")):
         workflow.run_calc(self.cd, rid)
         workflow.run_approve(self.cd, rid, confirm=True)
         if workflow.review_status(self.cd, rid)["required"]:
-            workflow.review_record(self.cd, rid, review_result, None)
+            workflow.review_record(self.cd, rid, *review_result, None)
         path = workflow.run_build(self.cd, rid)
-        return jsonio.load(path)
+        data = jsonio.load(path)
+        self.assert_no_internal_flags(data)
+        return data
 
     def page(self, data, uid):
         return next(p for p in data["service_pages"] if p["unit_id"] == uid)
@@ -60,14 +73,20 @@ class RequiredCases(CaseTest):
         self.assertEqual(p["comparison_annual_gbp"], 288)
         self.assertEqual(p["comparison_text"], "Similar services cost about £288 a year.")
         self.assertEqual(p["potential_saving_gbp"], 180)
-        self.assertEqual(p["score"], {"value": 39, "band": "Poor", "colour": "red", "estimated": False})
+        self.assertEqual(p["score"], {"value": 39, "band": "Poor", "colour": "red"})
         self.assertEqual(data["overall"]["value"], 39)
         self.assertEqual(data["gate"]["type"], "review")
         self.assertIn("primary_look_at_changing_now", data["gate"]["reasons"])
         # internal values stay internal
-        text = json.dumps(data)
+        text = jsonio.dumps(data)
         for leaked in ("TalkTalk", "Plusnet", "benchmark", "24.0000", "capture-1"):
             self.assertNotIn(leaked, text)
+        # current-service block: the household's own facts only
+        self.assertEqual(p["current_service"], {"provider": "BT", "download_speed_mbps": 67,
+                                                "monthly_cost_gbp": D("39.00"), "contract_end": "out_of_contract"})
+        self.assertEqual(data["totals"], {"annual_spend_gbp": 468, "potential_savings_gbp": 180,
+                                          "services_reviewed": 1, "priority_actions": 1})
+        self.assertEqual(data["priority_actions"][0]["effort"], data["service_pages"][0]["effort"])
 
     def test_2_mobile_floor_only_after_founder_approval(self):
         case = fixture("mobile_small_saving")
@@ -78,6 +97,11 @@ class RequiredCases(CaseTest):
         p = self.page(data, "mobile")
         self.assertEqual((p["score"]["value"], p["score"]["band"]), (75, "Good"))
         self.assertEqual(p["potential_saving_gbp"], 36)  # saving still displayed
+        self.assertEqual(p["current_service"]["plan_type"], "sim_only")
+        self.assertEqual(p["current_service"]["monthly_cost_gbp"], D("15.00"))
+        # Stay put is not counted as a priority action; its displayed saving still counts in the total
+        self.assertEqual(data["totals"], {"annual_spend_gbp": 180, "potential_savings_gbp": 36,
+                                          "services_reviewed": 1, "priority_actions": 0})
 
     def test_2b_floor_refused_without_stay_put_or_with_large_saving(self):
         case = fixture("mobile_small_saving")
@@ -105,9 +129,15 @@ class RequiredCases(CaseTest):
         p = self.page(data, "energy_combined")
         self.assertEqual(p["coverage_status"], "Analysed")
         self.assertEqual(p["estimate_note"], "Your consumption was estimated from households with similar characteristics.")
-        self.assertEqual(p["score"], {"value": 77, "band": "Good", "colour": "green", "estimated": False})
+        self.assertEqual(p["score"], {"value": 77, "band": "Good", "colour": "green"})
         self.assertEqual(p["current_annual_spend_gbp"], 1167)
         self.assertIsNone(p["limitation"])
+        # monthly payment stays null until a structured figure is agreed (customer wording is not copied)
+        self.assertEqual(p["current_service"], {"supplier": "British Gas", "services": "both",
+                                                "tariff": "Standard Variable", "monthly_payment_gbp": None,
+                                                "tariff_end": "no_end_date"})
+        self.assertEqual(data["totals"]["annual_spend_gbp"],
+                         sum(pg["current_annual_spend_gbp"] for pg in data["service_pages"]))
         # overall: both services at weight 1.0
         bb = D(80) * D("0.9") + D(100) * (D(12) - D(5)) / D("10.5") * D("0.1")  # Sky rank 5
         en = D(20) + D(60) * D("1107.6155") / D("1167.4955")
@@ -130,7 +160,8 @@ class RequiredCases(CaseTest):
         data = self.approve_and_build(rid)
         p = self.page(data, "energy_combined")
         self.assertEqual(p["coverage_status"], "Analysed with limitations")
-        self.assertTrue(p["score"]["estimated"])
+        self.assertNotIn("estimated", p["score"])
+        self.assertTrue(self.load(rid)["analysis_units"][2]["calculation_output"]["score"]["estimated"])
         self.assertIn("Direct Debit on the same tariff would cost an estimated £60 less a year", p["findings"][0]["text"])
 
     def test_3c_route_mismatch_rejected(self):
@@ -149,11 +180,58 @@ class RequiredCases(CaseTest):
         self.assertTrue(e["stopped"])
         self.assertIsNone(e["coverage_status"])
         self.assertEqual(e["issues"][0]["code"], "SPECIALIST_ENERGY_USAGE_REQUIRED")
-        data = self.approve_and_build(rid)
+        data = workflow.run_approve(self.cd, rid, confirm=True)["result"]["body"]
         p = self.page(data, "energy_combined")
         self.assertEqual((p["coverage_status"], p["action_type"], p["score"]), ("Analysed with limitations", "Confirm information", None))
         self.assertIsNone(data["overall"])
-        self.assertIn("calculator_failure_or_manual_override", data["gate"]["reasons"])
+        self.assertIn("calculator_failure_or_manual_override", workflow.review_status(self.cd, rid)["reasons"])
+        # With no scored service there is no overall score, and the renderer contract has no approved
+        # cover for that case, so build refuses rather than inventing one (docs/OPEN_QUESTIONS.md).
+        workflow.review_record(self.cd, rid, "Content passed", "none", None)
+        with self.assertRaisesRegex(GateError, "no overall Bills Health Score"):
+            workflow.run_build(self.cd, rid)
+        self.assertEqual(list(self.cd.joinpath(rid).glob("report*.v*")), [])
+        self.assertEqual(p["confirmed_items"], ["Your supplier and tariff", "That you pay by Direct Debit"])
+        self.assertEqual(p["still_needed"], ["Your annual electricity and gas use"])
+
+    def test_4e_confirm_information_lists_checked(self):
+        case = fixture("energy_specialist")
+        case["decision"]["units"]["energy_combined"]["still_needed"] = []
+        rid = self.put(case)
+        workflow.run_calc(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "needs at least one still_needed item"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+        self.edit(rid, lambda c: c["decision"]["units"]["energy_combined"].update(
+            still_needed=["Your usage — not the benchmark figure"]))
+        with self.assertRaisesRegex(GateError, "benchmark"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+
+    def test_lists_refused_outside_confirm_information(self):
+        case = fixture("broadband_saving")
+        case["decision"]["units"]["broadband"]["still_needed"] = ["Your contract end date"]
+        rid = self.put(case)
+        workflow.run_calc(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "only for a Confirm information page"):
+            workflow.run_approve(self.cd, rid, confirm=True)
+
+    def test_energy_monthly_payment_and_priority_reason(self):
+        case = fixture("household_energy_bedroom")
+        case["analysis_units"][2]["calculation_input"]["facts"]["approximate_monthly_payment_gbp"] = D("95")
+        case["decision"]["report"]["priority_reason"] = "Broadband is the clearest place to start."
+        rid = self.put(case)
+        data = self.approve_and_build(rid)
+        self.assertEqual(self.page(data, "energy_combined")["current_service"]["monthly_payment_gbp"], D("95.00"))
+        self.assertEqual(data["priority_reason"], "Broadband is the clearest place to start.")
+        # display-only: the annual spend is still the calculated tariff cost
+        self.assertEqual(self.page(data, "energy_combined")["current_annual_spend_gbp"], 1167)
+
+    def test_energy_monthly_payment_must_be_valid(self):
+        case = fixture("household_energy_bedroom")
+        case["analysis_units"][2]["calculation_input"]["facts"]["approximate_monthly_payment_gbp"] = "about 95"
+        rid = self.put(case)
+        outs = workflow.run_calc(self.cd, rid)
+        self.assertTrue(outs["energy_combined"]["stopped"])
+        self.assertEqual(outs["energy_combined"]["issues"][0]["field"], "facts.approximate_monthly_payment_gbp")
 
     def test_4b_stop_blocks_without_proceed_as(self):
         case = fixture("energy_specialist")
@@ -171,6 +249,33 @@ class RequiredCases(CaseTest):
         outs = workflow.run_calc(self.cd, rid)
         self.assertEqual(outs["energy_combined"]["issues"][0]["code"], "MINIMUM_FIELD_MISSING")
         self.assertEqual(outs["energy_combined"]["issues"][0]["field"], "facts.payment_method")
+
+    def test_review_gate_blocks_until_passing_outcome(self):
+        rid = self.put(fixture("broadband_saving"))
+        workflow.run_calc(self.cd, rid)
+        workflow.run_approve(self.cd, rid, confirm=True)
+        self.assertTrue(workflow.review_status(self.cd, rid)["required"])
+        with self.assertRaisesRegex(GateError, "Review is required"):
+            workflow.run_build(self.cd, rid)
+        for outcome, severity in (("Content blocked", "major"), ("Escalate before delivery", "none")):
+            workflow.review_record(self.cd, rid, outcome, severity, None)
+            with self.assertRaisesRegex(GateError, "HTML generation is blocked"):
+                workflow.run_build(self.cd, rid)
+        with self.assertRaisesRegex(GateError, "must be 'none'"):
+            workflow.review_record(self.cd, rid, "Content passed", "major", None)
+        workflow.review_record(self.cd, rid, "Content passed after correction", "minor", None)
+        data = jsonio.load(workflow.run_build(self.cd, rid))
+        self.assertEqual((data["gate"]["outcome"], data["gate"]["highest_severity"]),
+                         ("Content passed after correction", "minor"))
+
+    def test_postcode_required_for_every_requested_service(self):
+        case = fixture("broadband_saving")
+        case["case"]["postcode"] = ""
+        rid = self.put(case)
+        outs = workflow.run_calc(self.cd, rid)
+        issue = outs["broadband"]["issues"][0]
+        self.assertTrue(outs["broadband"]["stopped"])
+        self.assertEqual((issue["code"], issue["field"]), ("MINIMUM_FIELD_MISSING", "case.postcode"))
 
     def test_4d_northern_ireland_energy_cannot_proceed(self):
         case = fixture("energy_specialist")
@@ -212,7 +317,7 @@ class RequiredCases(CaseTest):
         rid = self.put(fixture("household_energy_bedroom"))
         workflow.run_calc(self.cd, rid)
         workflow.run_approve(self.cd, rid, confirm=True)
-        workflow.review_record(self.cd, rid, "pass", None)
+        workflow.review_record(self.cd, rid, "Content passed", "none", None)
         base = self.load(rid)
 
         def reset():
@@ -267,41 +372,69 @@ class RequiredCases(CaseTest):
         p = self.page(data, "broadband")
         self.assertEqual(p["coverage_status"], "Analysed with limitations")
         self.assertEqual(p["limitation"], "This score is based on price comparison only.")
-        self.assertFalse(p["score"]["estimated"])
+        self.assertNotIn("estimated", p["score"])
+
+
+PASS = ("Content passed", "none")
 
 
 class ReviewLedger(unittest.TestCase):
-    def build(self, rid, reviewed_result=None):
+    def build(self, rid, reviewed=None):
         ev = [{"type": "build", "report_id": rid}]
-        if reviewed_result:
-            ev.insert(0, {"type": "review", "report_id": rid, "result": reviewed_result})
+        if reviewed:
+            outcome, severity = reviewed
+            ev.insert(0, {"type": "review", "report_id": rid, "outcome": outcome, "highest_severity": severity})
         return ev
 
     def test_first_five_then_one_in_five(self):
         events = []
         for i in range(5):
-            events += self.build(f"R{i}", "pass")
+            events += self.build(f"R{i}", PASS)
         led = {"events": events}
         self.assertEqual(review.triggers(led, "R5", {}), [])
         for i in range(5, 9):
             events += self.build(f"R{i}")
         self.assertEqual(review.triggers(led, "R9", {}), ["one_in_five_spot_check"])
-        events += self.build("R9", "pass")
+        events += self.build("R9", PASS)
         self.assertEqual(review.triggers(led, "R10", {}), [])
 
     def test_defect_resets_clean_count(self):
         events = []
         for i in range(5):
-            events += self.build(f"R{i}", "pass")
-        events += self.build("R5", "major")
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content blocked", "major"))
         led = {"events": events}
         self.assertIn("defect_reset_until_five_clean", review.triggers(led, "R6", {}))
         for i in range(6, 11):
-            events += self.build(f"R{i}", "pass")
+            events += self.build(f"R{i}", PASS)
         self.assertEqual(review.triggers(led, "R11", {}), [])
 
+    def test_major_corrected_and_passed_still_resets(self):
+        events = []
+        for i in range(5):
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content passed after correction", "major"))
+        led = {"events": events}
+        self.assertIn("defect_reset_until_five_clean", review.triggers(led, "R6", {}))
+
+    def test_minor_correction_does_not_reset(self):
+        events = []
+        for i in range(5):
+            events += self.build(f"R{i}", PASS)
+        events += self.build("R5", ("Content passed after correction", "minor"))
+        self.assertEqual(review.triggers({"events": events}, "R6", {}), [])
+
+    def test_record_consistency(self):
+        review.validate_record("Content blocked", "major")
+        with self.assertRaisesRegex(ValueError, "must be 'none'"):
+            review.validate_record("Content passed", "minor")
+        with self.assertRaisesRegex(ValueError, "severity of the corrected defect"):
+            review.validate_record("Content passed after correction", "none")
+        with self.assertRaisesRegex(ValueError, "outcome must be one of"):
+            review.validate_record("pass", "none")
+
     def test_flags(self):
-        led = {"events": [e for i in range(5) for e in self.build(f"R{i}", "pass")]}
+        led = {"events": [e for i in range(5) for e in self.build(f"R{i}", PASS)]}
         self.assertEqual(review.triggers(led, "X", {"primary_look_at_changing_now": True}), ["primary_look_at_changing_now"])
 
 
@@ -311,6 +444,9 @@ class Leakage(unittest.TestCase):
 
     def test_banned(self):
         self.assertTrue(self.check("Compared with our benchmark"))
+        self.assertTrue(self.check("Customer reviews rate this provider poorly"))
+        self.assertFalse(self.check("Review your broadband renewal price"))
+        self.assertFalse(self.check("We will finish your energy review"))
         self.assertTrue(self.check("A guaranteed saving"))
         self.assertTrue(self.check("the best deal available"))
         self.assertTrue(self.check("across the whole market"))

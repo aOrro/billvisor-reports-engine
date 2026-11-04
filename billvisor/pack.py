@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .calc import LABELS, LIMITATION_DEFAULT_TEXT, unit_sort_key
 from .energy import ESTIMATE_WORDING
+from .report_data import current_service
 from .score import COLOUR, floor_eligible
 from .values import gbp, gbp_whole, round_half_up
 
@@ -70,7 +71,7 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
         sc = out.get("score")
         if sc:
             L.append(f"  - score exact {sc['exact']} -> **{sc['display']} {sc['band']}**"
-                     f"{' (Estimated)' if sc.get('estimated') else ''}; materiality {sc['materiality']}"
+                     f"{' (qualified comparison — internal flag)' if sc.get('estimated') else ''}; materiality {sc['materiality']}"
                      f"{'; capped' if sc.get('cap_applied') is not None else ''}; provider note "
                      f"{'triggered' if sc['provider_note_triggered'] else 'not triggered'}")
             if floor_eligible(sc):
@@ -80,6 +81,9 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
             L.append("  - no numeric score")
 
         L.append("- Customer-facing fields this service would show:")
+        cs = current_service(u["id"], (u.get("calculation_input") or {}).get("facts"))
+        L.append("  - current service (your own details, shown as supplied): "
+                 + "; ".join(f"{k}: {'—' if v is None else v}" for k, v in cs.items()))
         L.append(f"  - annual spend: {gbp_whole(round_half_up(spend))}"
                  + (" (estimated annual cost)" if "energy" in out else " (monthly payment x 12)"))
         if "comparison" in out:
@@ -89,7 +93,7 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
                      "(no 'about' prefix)")
         if sc:
             L.append(f"  - score before decision: {sc['display']} {sc['band']} ({COLOUR[sc['band']]})"
-                     f"{' labelled Estimated' if sc.get('estimated') else ''}")
+                     f"{' [qualified comparison — internal flag]' if sc.get('estimated') else ''}")
         if "energy" in out and out["energy"]["consumption_estimated"]:
             L.append(f"  - estimate wording (automatic): \"{ESTIMATE_WORDING}\"")
         if out.get("limitation_reason"):

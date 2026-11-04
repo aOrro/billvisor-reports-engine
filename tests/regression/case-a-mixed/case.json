@@ -1,0 +1,241 @@
+{
+  "schema_version": "1.0",
+  "case": {
+    "report_id": "REG-A-001",
+    "first_name": "Alex",
+    "postcode": "M1 1AE",
+    "report_version": 1
+  },
+  "analysis_units": [
+    {
+      "id": "broadband",
+      "services": [
+        "broadband"
+      ],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "synthetic-a",
+        "facts": {
+          "provider": "Virgin Media",
+          "download_speed_mbps": 125,
+          "monthly_price_gbp": 50,
+          "contract_end": "out_of_contract"
+        },
+        "provider_table": {
+          "table_ref": "broadband_provider_scores",
+          "table_version": "2026-11-04-as-supplied",
+          "provider_id": "Virgin Media"
+        },
+        "comparison_sufficient_for_score": true,
+        "observations": [
+          {
+            "observation_id": "a1",
+            "service": "broadband",
+            "provider": "TalkTalk",
+            "package_label": "Fibre 150",
+            "package_attributes": {
+              "download_speed_mbps": 150
+            },
+            "recurring_price_periods": [
+              {
+                "price_gbp": 28,
+                "months": 24
+              }
+            ],
+            "compulsory_one_off": {
+              "status": "not_shown"
+            },
+            "source_ref": "capture-a",
+            "captured_at": "2026-11-04",
+            "comparison_disposition": "include"
+          },
+          {
+            "observation_id": "a2",
+            "service": "broadband",
+            "provider": "Sky",
+            "package_label": "Fibre 145",
+            "package_attributes": {
+              "download_speed_mbps": 145
+            },
+            "recurring_price_periods": [
+              {
+                "price_gbp": 30,
+                "months": 24
+              }
+            ],
+            "compulsory_one_off": {
+              "status": "not_shown"
+            },
+            "source_ref": "capture-a",
+            "captured_at": "2026-11-04",
+            "comparison_disposition": "include"
+          },
+          {
+            "observation_id": "a3",
+            "service": "broadband",
+            "provider": "Vodafone",
+            "package_label": "Fibre 150",
+            "package_attributes": {
+              "download_speed_mbps": 150
+            },
+            "recurring_price_periods": [
+              {
+                "price_gbp": 32,
+                "months": 24
+              }
+            ],
+            "compulsory_one_off": {
+              "status": "not_shown"
+            },
+            "source_ref": "capture-a",
+            "captured_at": "2026-11-04",
+            "comparison_disposition": "include"
+          },
+          {
+            "observation_id": "a4",
+            "service": "broadband",
+            "provider": "BT",
+            "package_label": "Fibre 150",
+            "package_attributes": {
+              "download_speed_mbps": 150
+            },
+            "recurring_price_periods": [
+              {
+                "price_gbp": 34,
+                "months": 24
+              }
+            ],
+            "compulsory_one_off": {
+              "status": "not_shown"
+            },
+            "source_ref": "capture-a",
+            "captured_at": "2026-11-04",
+            "comparison_disposition": "include"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mobile",
+      "services": [
+        "mobile"
+      ],
+      "requested": false,
+      "calculation_input": {}
+    },
+    {
+      "id": "energy_combined",
+      "services": [
+        "gas",
+        "electricity"
+      ],
+      "requested": true,
+      "calculation_input": {
+        "customer_source_ref": "synthetic-a",
+        "facts": {
+          "supplier": "Example Energy",
+          "fuels": "both",
+          "approximate_payment": "about £120 a month",
+          "approximate_monthly_payment_gbp": 120,
+          "payment_method": "Direct Debit",
+          "tariff_type_or_name": "Standard Variable",
+          "tariff_end": "no_end_date",
+          "bedrooms": 3,
+          "specialist_setup": "none"
+        },
+        "tariff_fit_score_observation_id": "ae2",
+        "observations": [
+          {
+            "observation_id": "ae1",
+            "role": "current_cost_model",
+            "provider": "Example Energy",
+            "tariff_label": "Standard Variable",
+            "tariff_type": "variable",
+            "region": "North West",
+            "fuels": "both",
+            "meter_type": "single_rate",
+            "payment_method": "Direct Debit",
+            "rates": {
+              "electricity": {
+                "unit_rate_p_per_kwh": 24,
+                "standing_charge_p_per_day": 50
+              },
+              "gas": {
+                "unit_rate_p_per_kwh": 6,
+                "standing_charge_p_per_day": 30
+              }
+            },
+            "tariff_end": "no_end_date",
+            "exit_fee_gbp": 0,
+            "source_ref": "capture-e",
+            "captured_at": "2026-11-04"
+          },
+          {
+            "observation_id": "ae2",
+            "role": "accessible_alternative",
+            "provider": "Example Energy",
+            "tariff_label": "Fixed 12M",
+            "tariff_type": "fixed",
+            "region": "North West",
+            "fuels": "both",
+            "meter_type": "single_rate",
+            "payment_method": "Direct Debit",
+            "rates": {
+              "electricity": {
+                "unit_rate_p_per_kwh": 22,
+                "standing_charge_p_per_day": 50
+              },
+              "gas": {
+                "unit_rate_p_per_kwh": 5.5,
+                "standing_charge_p_per_day": 30
+              }
+            },
+            "tariff_end": "2027-11-30",
+            "exit_fee_gbp": 0,
+            "source_ref": "capture-e",
+            "captured_at": "2026-11-04"
+          }
+        ]
+      }
+    }
+  ],
+  "decision": {
+    "units": {
+      "broadband": {
+        "limitation_text": null,
+        "small_saving_not_worth_effort": false,
+        "findings_shown": [],
+        "proceed_as": null,
+        "confirmed_items": [],
+        "still_needed": [],
+        "action_type": "Look at changing now",
+        "effort": "Moderate",
+        "priority": 1,
+        "headline": "Your broadband costs noticeably more than similar packages.",
+        "explanation": "You are out of contract and similar packages cost much less.",
+        "next_step": "Compare similar packages and ask your provider to match them.",
+        "show_saving": true
+      },
+      "energy_combined": {
+        "limitation_text": null,
+        "small_saving_not_worth_effort": false,
+        "findings_shown": [],
+        "proceed_as": null,
+        "confirmed_items": [],
+        "still_needed": [],
+        "action_type": "Improve the current setup",
+        "effort": "Low",
+        "priority": 2,
+        "headline": "A fixed tariff from your supplier would cost a little less.",
+        "explanation": "The difference is modest, so this is worth a short check rather than a switch.",
+        "next_step": "Ask your supplier about its fixed tariff.",
+        "show_saving": false
+      }
+    },
+    "report": {
+      "summary": null,
+      "priority_reason": null
+    },
+    "manual_override": false
+  }
+}

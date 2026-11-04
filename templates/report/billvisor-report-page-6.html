@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billvisor - Electricity Analysis concept</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; margin: 0; }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        color: var(--ink);
+        background: var(--canvas);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        position: relative;
+        width: 794px;
+        height: 1123px;
+        overflow: hidden;
+        padding: 48px 50px 38px;
+        background: var(--white);
+        border: 1px solid var(--page-border);
+        border-radius: 15px;
+        box-shadow: 0 18px 55px rgba(16, 41, 70, 0.13);
+      }
+
+      .page-number {
+        position: absolute;
+        top: 38px;
+        right: 50px;
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        color: var(--white);
+        background: var(--navy);
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .page-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 28px 0 30px;
+      }
+
+      .page-title h1 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+      }
+
+      .icon {
+        width: 23px;
+        height: 23px;
+        color: var(--navy);
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .analysis-grid {
+        display: grid;
+        grid-template-columns: 270px 1fr;
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      .card {
+        overflow: hidden;
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-radius: 11px;
+      }
+
+      .current { display: flex; flex-direction: column; }
+      .card-section { padding: 23px 24px; }
+
+      .card h2 {
+        margin: 0 0 18px;
+        color: var(--navy);
+        font-size: 15px;
+        line-height: 1.2;
+      }
+
+      .facts { margin: 0; }
+
+      .fact {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 12px;
+        align-items: baseline;
+        min-height: 39px;
+        padding: 11px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .fact:first-child { padding-top: 0; }
+      .fact:last-child { padding-bottom: 0; border-bottom: 0; }
+      .fact dt { color: var(--muted); font-size: 9px; }
+      .fact dd { margin: 0; color: var(--navy); font-size: 10px; font-weight: 800; text-align: right; }
+
+      .score-section {
+        flex: 1;
+        padding: 21px 24px 24px;
+        border-top: 1px solid var(--line);
+      }
+
+      .score-label { margin-bottom: 3px; color: var(--navy); font-size: 10px; font-weight: 800; }
+
+      .gauge {
+        position: relative;
+        width: 150px;
+        height: 132px;
+        margin: 2px auto 0;
+      }
+
+      .gauge svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .gauge path { fill: none; stroke-width: 9; stroke-linecap: round; }
+      .gauge .track { stroke: var(--gauge-track); }
+      .gauge .progress { stroke: var(--amber); }
+
+      .gauge-value {
+        position: absolute;
+        top: 51px;
+        left: 0;
+        width: 100%;
+        color: var(--navy);
+        text-align: center;
+      }
+
+      .gauge-value strong { display: block; font-size: 39px; line-height: .9; letter-spacing: -0.055em; }
+      .gauge-value span { font-size: 9px; font-weight: 700; }
+      .market-position { margin-top: -7px; color: var(--amber); font-size: 12px; font-weight: 800; text-align: center; }
+
+      .analysis {
+        display: flex;
+        flex-direction: column;
+        padding: 23px 24px;
+      }
+
+      .comparison { padding-bottom: 21px; border-bottom: 1px solid var(--line); }
+
+      .comparison p,
+      .meaning p,
+      .recommendation p {
+        margin: 0;
+        color: var(--body-copy);
+        font-size: 10px;
+        line-height: 1.58;
+      }
+
+      .saving {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: end;
+        margin-top: 18px;
+      }
+
+      .saving span { display: block; margin-bottom: 5px; color: var(--muted); font-size: 9px; font-weight: 700; }
+      .saving strong { color: var(--green); font-size: 29px; line-height: 1; letter-spacing: -0.04em; }
+      .saving small { color: var(--green); font-size: 9px; font-weight: 700; }
+      .meaning { padding: 21px 0; }
+
+      .recommendation {
+        display: grid;
+        grid-template-columns: 25px 1fr;
+        gap: 13px;
+        align-items: start;
+        margin-top: auto;
+        padding: 20px;
+        background: var(--orange-soft);
+        border: 1px solid var(--orange-border);
+        border-radius: 9px;
+      }
+
+      .recommendation .icon { width: 22px; height: 22px; color: var(--orange); }
+      .recommendation-label { display: block; margin-bottom: 6px; color: var(--orange); font-size: 8px; font-weight: 800; text-transform: uppercase; }
+
+      .recommendation strong {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--navy);
+        font-size: 15px;
+        line-height: 1.35;
+      }
+
+      .confidence {
+        display: grid;
+        grid-template-columns: 135px 1fr;
+        gap: 22px;
+        align-items: center;
+        margin-top: 17px;
+        padding: 18px 21px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+
+      .confidence strong { color: var(--navy); font-size: 11px; }
+      .confidence-value { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 9px; }
+      .confidence-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--confidence-dot); }
+      .confidence-dot.active { background: var(--navy); }
+
+      .footer {
+        position: absolute;
+        right: 50px;
+        bottom: 24px;
+        color: var(--footer-copy);
+        font-size: 8px;
+      }
+
+      @media print {
+        @page { size: A4; margin: 0; }
+        body { padding: 0; background: var(--white); }
+        .page { border: 0; border-radius: 0; box-shadow: none; }
+      }
+    </style>
+    <link rel="stylesheet" href="report-design-tokens.css" />
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <symbol id="icon-electricity" viewBox="0 0 24 24">
+        <path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z" />
+      </symbol>
+    </svg>
+
+    <article class="page">
+      <div class="report-brand"><img src="billvisor-logo.svg" alt="" /><span>Billvisor</span></div>
+      <header class="page-title">
+        <svg class="icon" aria-hidden="true"><use href="#icon-electricity" /></svg>
+        <h1>Electricity Analysis</h1>
+      </header>
+
+      <section class="analysis-grid">
+        <article class="card current">
+          <div class="card-section">
+            <h2>Your electricity</h2>
+            <dl class="facts">
+              <div class="fact"><dt>Supplier</dt><dd>Example Energy</dd></div>
+              <div class="fact"><dt>Tariff</dt><dd>Fixed Electricity</dd></div>
+              <div class="fact"><dt>Monthly payment</dt><dd>£146.00</dd></div>
+              <div class="fact"><dt>Tariff ends</dt><dd>31 Oct 2026</dd></div>
+            </dl>
+          </div>
+
+          <div class="score-section">
+            <div class="score-label">Health score</div>
+            <div class="gauge">
+              <svg viewBox="0 0 180 130" aria-hidden="true">
+                <path class="track" d="M22 111 A72 72 0 1 1 158 111" pathLength="100" />
+                <path class="progress" d="M22 111 A72 72 0 1 1 158 111" pathLength="100" stroke-dasharray="71 100" />
+              </svg>
+              <div class="gauge-value"><strong>71</strong><span>/100</span></div>
+            </div>
+            <div class="market-position">Medium</div>
+          </div>
+        </article>
+
+        <article class="card analysis">
+          <section class="comparison">
+            <h2>How it compares</h2>
+            <p>Your current electricity cost appears higher than comparable current arrangements.</p>
+            <div class="saving">
+              <div><span>Potential annual savings</span><strong>£160</strong></div>
+              <small>Estimated</small>
+            </div>
+          </section>
+
+          <section class="meaning">
+            <h2>What this means</h2>
+            <p>There may be enough difference in price to make a short tariff review worthwhile.</p>
+          </section>
+
+          <section class="recommendation">
+            <svg class="icon" aria-hidden="true"><use href="#icon-electricity" /></svg>
+            <div>
+              <span class="recommendation-label">Our recommendation</span>
+              <strong>Review your electricity tariff</strong>
+              <p>The £160 potential saving is enough to justify looking more closely at your current arrangement.</p>
+            </div>
+          </section>
+        </article>
+      </section>
+
+      <section class="confidence">
+        <strong>Report confidence</strong>
+        <div class="confidence-value">
+          <span class="confidence-dot active"></span>
+          <span class="confidence-dot active"></span>
+          <span class="confidence-dot"></span>
+          Medium
+        </div>
+      </section>
+
+      <img class="closing-watermark" src="billvisor-logo.svg" alt="" aria-hidden="true" />
+
+      <div class="footer">Concept · Page 6 of 7</div>
+    </article>
+  </body>
+</html>

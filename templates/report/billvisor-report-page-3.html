@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Billvisor - Priority Actions concept</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; margin: 0; }
+
+      body {
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        color: var(--ink);
+        background: var(--canvas);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        position: relative;
+        width: 794px;
+        height: 1123px;
+        overflow: hidden;
+        padding: 48px 50px 38px;
+        background: var(--white);
+        border: 1px solid var(--page-border);
+        border-radius: 15px;
+        box-shadow: 0 18px 55px rgba(16, 41, 70, 0.13);
+      }
+
+      .page-number {
+        position: absolute;
+        top: 38px;
+        right: 50px;
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        color: var(--white);
+        background: var(--navy);
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      h1 {
+        margin: 28px 0 8px;
+        color: var(--navy);
+        font-size: 34px;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+      }
+
+      .intro {
+        margin: 0 0 30px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .actions {
+        display: grid;
+        gap: 16px;
+      }
+
+      .action {
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) 128px 104px;
+        gap: 19px;
+        min-height: 132px;
+        align-items: center;
+        padding: 23px 24px 23px 20px;
+        background: var(--white);
+        border: 1px solid var(--line);
+        border-left-width: 5px;
+        border-radius: 11px;
+      }
+
+      .action.high { border-left-color: var(--red); }
+      .action.medium { border-left-color: var(--amber); }
+      .action.none { border-left-color: var(--green); }
+
+      .icon {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .action.high .service-icon { color: var(--red); }
+      .action.medium .service-icon { color: var(--amber-text); }
+      .action.none .service-icon { color: var(--green); }
+
+      .priority {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 8px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .high .priority { color: var(--red); }
+      .medium .priority { color: var(--amber-text); }
+      .none .priority { color: var(--green); }
+
+      .action-title {
+        display: block;
+        color: var(--navy);
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.35;
+      }
+
+      .action-reason {
+        margin: 7px 0 0;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 1.45;
+      }
+
+      .stat {
+        min-height: 58px;
+        padding-left: 18px;
+        border-left: 1px solid var(--line);
+      }
+
+      .stat span {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 8px;
+        font-weight: 700;
+      }
+
+      .stat strong {
+        color: var(--navy);
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .stat.saving strong { color: var(--green); }
+      .stat.saving.unavailable strong { color: var(--muted); }
+
+      .why {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 10px;
+        align-items: start;
+        margin-top: 20px;
+        padding: 21px 23px;
+        color: var(--navy);
+        background: var(--green-soft);
+        border: 1px solid var(--green-border);
+        border-radius: 11px;
+      }
+
+      .why .icon {
+        width: 18px;
+        height: 18px;
+        color: var(--green);
+      }
+
+      .why strong {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--green);
+        font-size: 14px;
+        line-height: 18px;
+      }
+
+      .why p {
+        margin: 0;
+        color: var(--body-copy);
+        font-size: 10px;
+        line-height: 1.55;
+      }
+
+      .footer {
+        position: absolute;
+        right: 50px;
+        bottom: 24px;
+        color: var(--footer-copy);
+        font-size: 8px;
+      }
+
+      @media print {
+        @page { size: A4; margin: 0; }
+        body { padding: 0; background: var(--white); }
+        .page { border: 0; border-radius: 0; box-shadow: none; }
+      }
+    </style>
+    <link rel="stylesheet" href="report-design-tokens.css" />
+  </head>
+  <body>
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+      <symbol id="icon-wifi" viewBox="0 0 24 24">
+        <path d="M4 9a12 12 0 0 1 16 0M7 12a8 8 0 0 1 10 0M10 15a4 4 0 0 1 4 0M12 19h.01" />
+      </symbol>
+      <symbol id="icon-mobile" viewBox="0 0 24 24">
+        <rect x="7" y="2.5" width="10" height="19" rx="2" />
+        <path d="M10 5h4M11 18.5h2" />
+      </symbol>
+      <symbol id="icon-energy" viewBox="0 0 24 24">
+        <path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z" />
+      </symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v6" />
+        <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+      </symbol>
+    </svg>
+
+    <article class="page">
+      <div class="report-brand"><img src="billvisor-logo.svg" alt="" /><span>Billvisor</span></div>
+      <h1>Your Priority Actions</h1>
+      <p class="intro">We focus on what is most worth your time.</p>
+
+      <section class="actions">
+        <article class="action high">
+          <svg class="icon service-icon" aria-hidden="true"><use href="#icon-wifi" /></svg>
+          <div>
+            <span class="priority">High priority</span>
+            <strong class="action-title">Review your broadband renewal price</strong>
+            <p class="action-reason">This is the clearest worthwhile saving in the report.</p>
+          </div>
+          <div class="stat saving"><span>Potential savings</span><strong>£95</strong></div>
+          <div class="stat"><span>Time required</span><strong>10 min</strong></div>
+        </article>
+
+        <article class="action medium">
+          <svg class="icon service-icon" aria-hidden="true"><use href="#icon-energy" /></svg>
+          <div>
+            <span class="priority">Medium priority</span>
+            <strong class="action-title">Review your electricity tariff</strong>
+            <p class="action-reason">The potential saving makes a short tariff review worth your time.</p>
+          </div>
+          <div class="stat saving"><span>Potential savings</span><strong>£160</strong></div>
+          <div class="stat"><span>Time required</span><strong>15 min</strong></div>
+        </article>
+
+        <article class="action none">
+          <svg class="icon service-icon" aria-hidden="true"><use href="#icon-mobile" /></svg>
+          <div>
+            <span class="priority">No action needed</span>
+            <strong class="action-title">Stay with your mobile plan for now</strong>
+            <p class="action-reason">The £24 saving does not justify the hassle of changing.</p>
+          </div>
+          <div class="stat saving"><span>Potential savings</span><strong>£24</strong></div>
+          <div class="stat"><span>Time required</span><strong>0 min</strong></div>
+        </article>
+      </section>
+
+      <section class="why">
+        <svg class="icon" aria-hidden="true"><use href="#icon-info" /></svg>
+        <div>
+          <strong>Why these priorities?</strong>
+          <p>Broadband is the first action, followed by electricity. Mobile still shows a saving, but staying put avoids unnecessary effort for little benefit.</p>
+        </div>
+      </section>
+
+      <img class="closing-watermark" src="billvisor-logo.svg" alt="" aria-hidden="true" />
+
+      <div class="footer">Concept · Page 3 of 7</div>
+    </article>
+  </body>
+</html>

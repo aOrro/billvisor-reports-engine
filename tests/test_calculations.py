@@ -4,7 +4,7 @@ import datetime as dt
 import unittest
 from decimal import Decimal as D
 
-from billvisor import energy, offers, provider, score
+from billvisor import energy, jsonio, offers, provider, score
 from billvisor.errors import StopError
 
 
@@ -203,6 +203,17 @@ class EnergyMethod(unittest.TestCase):
     def test_ni_postcode(self):
         self.assertTrue(energy.is_northern_ireland("bt7 1nn"))
         self.assertFalse(energy.is_northern_ireland("TN1 1BN"))
+
+
+
+class JsonRoundTrip(unittest.TestCase):
+    def test_whole_number_decimal_stays_decimal(self):
+        # A computed Decimal("600") must not come back as the int 600 after the case file is saved.
+        for v in (D("600"), D("6E+2"), D("39.00"), D("0")):
+            back = jsonio.loads(jsonio.dumps({"v": v}))["v"]
+            self.assertIsInstance(back, D)
+            self.assertEqual(back, v)
+        self.assertIsInstance(jsonio.loads(jsonio.dumps({"n": 3}))["n"], int)  # real ints stay ints
 
 
 if __name__ == "__main__":

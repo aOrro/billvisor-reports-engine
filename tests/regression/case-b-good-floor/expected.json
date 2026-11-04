@@ -1,0 +1,24 @@
+{
+  "overall": {"value": 80, "band": "Good", "colour": "green", "contributing_services": 2},
+  "pages": ["broadband", "mobile"],
+  "action_order": ["broadband", "mobile"],
+  "totals": {"annual_spend_gbp": 540, "potential_savings_gbp": 36, "services_reviewed": 2, "priority_actions": 0},
+  "service_pages": {
+    "broadband": {
+      "coverage_status": "Analysed",
+      "score": {"value": 82, "band": "Good", "colour": "green"},
+      "current_annual_spend_gbp": 360,
+      "comparison_annual_gbp": 360,
+      "potential_saving_gbp": null,
+      "provider_note": null
+    },
+    "mobile": {
+      "coverage_status": "Analysed",
+      "score": {"value": 75, "band": "Good", "colour": "green"},
+      "current_annual_spend_gbp": 180,
+      "comparison_annual_gbp": 144,
+      "potential_saving_gbp": 36,
+      "provider_note": null
+    }
+  }
+}

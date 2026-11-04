@@ -1,0 +1,226 @@
+:root {
+  /* Billvisor report brand colours */
+  --report-navy: #102946;
+  --report-navy-soft: #173a63;
+  --report-orange: #f18735;
+
+  /* Market-position RAG colours */
+  --report-good: #24a875;
+  --report-medium: #ffbf00;
+  --report-medium-text: #ffbf00;
+  --report-poor: #ef5b5b;
+  --report-analysed-with-limitations: #8792a2;
+
+  /* Supporting backgrounds */
+  --report-good-soft: #eaf8f1;
+  --report-medium-soft: #fff8dc;
+  --report-poor-soft: #fff0f0;
+  --report-neutral-soft: #f4f6f8;
+
+  /* Customer-positive figures, including every saving figure */
+  --report-positive: var(--report-good);
+
+  /* Default icon colour; use RAG colours only when the icon communicates a stat. */
+  --report-icon: var(--report-navy);
+
+  /* Shared aliases used by every approved report page. */
+  --navy: var(--report-navy);
+  --navy-soft: var(--report-navy-soft);
+  --ink: #18243a;
+  --muted: #687588;
+  --body-copy: #536275;
+  --intro-copy: #4e5e70;
+  --positive-copy: #34755e;
+  --footer-copy: #98a4b2;
+  --toolbar-copy: #cdd8e4;
+  --line: #dfe6ed;
+  --page-border: #d9e1e8;
+  --white: #fff;
+  --green: var(--report-good);
+  --green-soft: var(--report-good-soft);
+  --green-border: #cfe7dc;
+  --green-divider: #cce1d7;
+  --orange: var(--report-orange);
+  --orange-soft: #fff1e7;
+  --orange-border: #f3d6bd;
+  --amber: var(--report-medium);
+  --amber-text: var(--report-medium-text);
+  --amber-soft: var(--report-medium-soft);
+  --amber-border: #f0dda1;
+  --amber-divider: #eadba8;
+  --red: var(--report-poor);
+  --grey: var(--report-analysed-with-limitations);
+  --grey-soft: var(--report-neutral-soft);
+  --canvas: #e9edf2;
+  --gauge-track: #e9eef2;
+  --neutral-track: #cfd7df;
+  --confidence-dot: #d8e0e8;
+  --status-ring: #d8dee5;
+  --table-head: #f7f9fb;
+  --table-total: #fbfcfd;
+  --hero-circle: #eef1ff;
+  --brand-lockup-gap: 6px;
+  --brand-lockup-gap-compact: 4px;
+
+  /* Shared report typography and decoration scale. */
+  --report-title-size: 36px;
+  --report-section-title-size: 16px;
+  --report-body-size: 11px;
+  --report-small-size: 10px;
+  --report-footer-size: 9px;
+  --report-watermark-opacity: 0.14;
+}
+
+html,
+body,
+.page,
+.page * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Shared Billvisor branding used by every approved report page. */
+.brand-logo {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.report-brand {
+  position: absolute;
+  top: 29px;
+  right: 50px;
+  display: flex;
+  align-items: center;
+  gap: var(--brand-lockup-gap-compact);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.brand,
+.report-brand,
+.page > h1,
+.page-title h1 {
+  color: var(--navy);
+}
+
+.brand {
+  gap: var(--brand-lockup-gap) !important;
+}
+
+.report-brand img {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.page-title > .icon {
+  width: 32px !important;
+  height: 32px !important;
+  color: var(--navy) !important;
+}
+
+.page-title h1 {
+  color: var(--navy) !important;
+}
+
+.closing-watermark {
+  position: absolute;
+  bottom: 58px;
+  left: 50%;
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  opacity: var(--report-watermark-opacity);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+/* Shared readability rules used by every report page. */
+.page > h1,
+.page-title h1 {
+  font-size: var(--report-title-size) !important;
+}
+
+.page .card h2,
+.page .comparison h2,
+.page .meaning h2,
+.page .plan h2 {
+  font-size: var(--report-section-title-size) !important;
+}
+
+.page .comparison p,
+.page .meaning p,
+.page .recommendation p,
+.page .interpretation-copy p,
+.page .action-reason,
+.page .why p,
+.page .reassurance,
+.page .help p,
+.page .note {
+  font-size: var(--report-body-size) !important;
+}
+
+.page .intro {
+  font-size: 13px !important;
+}
+
+.page th,
+.page .fact dt,
+.page .saving span,
+.page .saving small,
+.page .confidence-value,
+.page .recommendation-label,
+.page .priority,
+.page .action-kicker,
+.page .action-stat span,
+.page .stat span,
+.page .key,
+.page .score-note {
+  font-size: var(--report-small-size) !important;
+}
+
+.page td,
+.page .fact dd,
+.page .service-action,
+.page .action-stat strong,
+.page .confidence strong {
+  font-size: var(--report-body-size) !important;
+}
+
+.page .footer {
+  font-size: var(--report-footer-size) !important;
+}
+
+/* Every row in the current-service facts table receives equal vertical space. */
+.page .fact,
+.page .fact:first-child,
+.page .fact:last-child {
+  min-height: 42px;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+}
+
+/* The complete preview embeds each fixed-A4 page at exactly this width. */
+@media screen and (max-width: 850px) {
+  html,
+  body {
+    min-height: 0 !important;
+  }
+
+  body {
+    display: block !important;
+    padding: 0 !important;
+    background: var(--white) !important;
+  }
+
+  .page {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}

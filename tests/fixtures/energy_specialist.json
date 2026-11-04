@@ -26,7 +26,9 @@
         "next_step": "Reply with your annual electricity and gas use from a recent bill or your supplier account.",
         "limitation_text": "With a heat pump, we need your actual annual energy use to compare your tariff.",
         "show_saving": false, "small_saving_not_worth_effort": false, "findings_shown": [],
-        "proceed_as": "confirm_information"
+        "proceed_as": "confirm_information",
+        "confirmed_items": ["Your supplier and tariff", "That you pay by Direct Debit"],
+        "still_needed": ["Your annual electricity and gas use"]
       }
     },
     "report": {"summary": null},
