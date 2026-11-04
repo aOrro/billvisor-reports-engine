@@ -53,7 +53,7 @@ A correction means bumping `case.report_version`, then calc, approve and build a
                "contract_end": "out_of_contract" },             // ISO date | out_of_contract | unknown
     "provider_table": { "table_ref": "broadband_provider_scores",
                         "table_version": "2026-11-04-as-supplied", "provider_id": "BT" },
-    "comparison_sufficient_for_score": true,   // false -> Estimated score, Analysed with limitations
+    "comparison_sufficient_for_score": true,   // false -> qualified score, Analysed with limitations
     "observations": [{
       "observation_id": "bb1", "service": "broadband", "provider": "Sky", "package_label": "Full Fibre 75",
       "package_attributes": { "download_speed_mbps": 75 },
@@ -81,7 +81,7 @@ Observations carry `role` (current_cost_model / accessible_alternative), tariff 
 `rates.{electricity,gas}.{unit_rate_p_per_kwh, standing_charge_p_per_day}`.
 An energy score exists only when the founder selects one route:
 - `tariff_fit_score_observation_id`: same provider, region, fuels, meter and payment method. Gives a tariff-fit score; status Analysed.
-- `score_comparison_observation_id`: same tariff basis, different payment method. Gives an Estimated score; status Analysed with limitations.
+- `score_comparison_observation_id`: same tariff basis, different payment method. Gives a qualified score; status Analysed with limitations. The qualified flag stays internal and is not a customer-facing score label.
 
 ## Implementation notes on the governing rules
 

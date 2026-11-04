@@ -193,7 +193,7 @@ Founder-approved calibration dry run on 17 August 2026:
 
 - Broadband: £39 current monthly price, £23.85 comparison, £181.80 annual saving and 38.8% saving share. The high material-opportunity guardrail caps the service score at **39 — Poor**.
 - Mobile: £12 current monthly price, £6 core-plan comparison and £72 annual saving. The comparison did not match the supplied EU-calling benefit, so the result is **45 — Medium** under **Analysed with limitations**; the service-page narrative states that material limitation while the qualified-comparison flag remains internal.
-- Energy: £1,282.27 estimated current annual cost and £1,173.36 like-for-like Direct Debit estimate, a saving of about 8.5%. No materiality cap applies; the price-only result is **75 — Good, Estimated**.
+- Energy: £1,282.27 estimated current annual cost and £1,173.36 like-for-like Direct Debit estimate, a saving of about 8.5%. No materiality cap applies; the price-only result is **75 — Good** under **Analysed with limitations**. The qualified-comparison status remains internal and the service-page narrative states the relevant limitation.
 - The individual service results were approved as a Phase 1 calibration decision. This historical overall score used the superseded equal-service weighting and is retained only as a record of that dry run; recalculate it before using it as a current validation case.
 
 ## 9. Required internal trace
@@ -207,7 +207,7 @@ For every numeric score retain:
 - exact service score, rounded display score and band;
 - price-only band and whether the provider-note trigger fired;
 - potential annual saving, saving share, materiality classification and any applied cap;
-- whether the score is Estimated and the exact customer-facing limitation;
+- whether the score is qualified (internal flag) and the exact customer-facing limitation;
 - coverage status and any limitation;
 - for the overall score, every included/excluded service, weight and arithmetic;
 - exact customer-facing provider wording where shown.

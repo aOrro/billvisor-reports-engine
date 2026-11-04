@@ -89,7 +89,7 @@ def render_pack(case: dict, outputs: dict, review_triggers: list[str], created_d
                      "(no 'about' prefix)")
         if sc:
             L.append(f"  - score before decision: {sc['display']} {sc['band']} ({COLOUR[sc['band']]})"
-                     f"{' labelled Estimated' if sc.get('estimated') else ''}")
+                     f"{' [qualified comparison — internal flag]' if sc.get('estimated') else ''}")
         if "energy" in out and out["energy"]["consumption_estimated"]:
             L.append(f"  - estimate wording (automatic): \"{ESTIMATE_WORDING}\"")
         if out.get("limitation_reason"):
